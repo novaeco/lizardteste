@@ -1,0 +1,41 @@
+# Composant LVGL pour ESP-IDF
+
+Ce dossier doit contenir la bibliothèque LVGL 9.2.2.
+
+## Installation
+
+Pour installer LVGL dans ce composant :
+
+1. Téléchargez LVGL 9.2.2 depuis GitHub :
+   ```bash
+   cd components/lvgl
+   git clone --recurse-submodules https://github.com/lvgl/lvgl.git
+   cd lvgl
+   git checkout release/v9.2
+   ```
+
+2. Ou utilisez le gestionnaire de composants ESP-IDF :
+   ```bash
+   cd components
+   idf.py add-dependency "lvgl/lvgl^9.2.0"
+   ```
+
+## Configuration
+
+Le fichier `lv_conf.h` se trouve dans `main/lv_conf.h` et est configuré pour :
+- Écran 800x480 16-bit (RGB565)
+- Tactile GT911
+- Widgets essentiels activés
+- Polices Montserrat
+
+## Structure
+
+```
+components/lvgl/
+├── CMakeLists.txt          # Configuration du composant
+├── README.md              # Ce fichier
+└── lvgl/                  # Sources LVGL (à télécharger)
+    ├── src/
+    ├── examples/
+    └── lv_conf_template.h
+```
