@@ -1,13 +1,1 @@
-idf_component_register(SRCS "main.c"
-                            "ui/ui_main.c"
-                            "ui/ui_header.c"
-                            "ui/ui_sidebar.c"
-                            "ui/ui_content.c"
-                            "ui/ui_footer.c"
-                            "ui/ui_styles.c"
-                            "drivers/display_driver.c"
-                            "drivers/touch_driver.c"
-                    INCLUDE_DIRS "."
-                            "ui"
-                            "drivers"
-                    PRIV_REQUIRES nvs_flash esp_timer driver)
+c
