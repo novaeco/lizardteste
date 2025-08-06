@@ -6,6 +6,12 @@ set(PROJECT_NAME "nova_reptile_elevage")
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(${PROJECT_NAME})
 
+if(NOT DEFINED ENV{IDF_TARGET})
+    set(ENV{IDF_TARGET} esp32s3)
+    message("IDF_TARGET not set, defaulting to: $ENV{IDF_TARGET}")
+endif()
+
+
 # Configuration spécifique LVGL
 target_compile_definitions(${PROJECT_NAME}.elf PRIVATE LV_CONF_INCLUDE_SIMPLE=1)
 
