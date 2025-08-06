@@ -133,9 +133,9 @@ static void st7262_init(void)
  * @brief Callback LVGL pour le flush de l'affichage
  * @param disp Display LVGL
  * @param area Zone à rafraîchir
- * @param color_p Données de couleur
+ * @param px_map Données de couleur (format uint8_t)
  */
-static void display_flush(lv_display_t *disp, const lv_area_t *area, lv_color_t *color_p)
+static void display_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
 {
     uint32_t size = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1);
     
@@ -156,7 +156,7 @@ static void display_flush(lv_display_t *disp, const lv_area_t *area, lv_color_t 
     
     // Écriture des données de couleur
     st7262_send_cmd(0x2C);
-    st7262_send_data((uint8_t*)color_p, size * 2);
+    st7262_send_data(px_map, size * 2);
     
     lv_display_flush_ready(disp);
 }
