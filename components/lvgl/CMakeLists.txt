@@ -5,3 +5,6 @@ idf_component_register(SRCS ${SOURCES}
                                  "lvgl"
                     REQUIRES esp_timer
                              driver)
+
+# Désactiver les warnings de format pour LVGL (bibliothèque externe)
+target_compile_options(__idf_lvgl PRIVATE -Wno-format)
