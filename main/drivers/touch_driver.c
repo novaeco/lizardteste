@@ -129,10 +129,10 @@ static esp_err_t gt911_init(void)
 
 /**
  * @brief Callback LVGL pour la lecture des données tactiles
- * @param indev_drv Driver d'entrée LVGL
+ * @param indev Device d'entrée LVGL
  * @param data Structure de données tactiles
  */
-static void touch_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
+static void touch_read(lv_indev_t *indev, lv_indev_data_t *data)
 {
     static bool touch_pressed = false;
     static uint16_t last_x = 0, last_y = 0;
@@ -241,17 +241,15 @@ esp_err_t touch_driver_init(void)
     }
     
     // Configuration du driver d'entrée LVGL
-    static lv_indev_drv_t indev_drv;
-    lv_indev_drv_init(&indev_drv);
-    indev_drv.type = LV_INDEV_TYPE_POINTER;
-    indev_drv.read_cb = touch_read;
-    
-    lv_indev_t *indev = lv_indev_drv_register(&indev_drv);
+    lv_indev_t *indev = lv_indev_create();
     if (!indev) {
-        ESP_LOGE(TAG, "Erreur enregistrement driver tactile LVGL");
+        ESP_LOGE(TAG, "Erreur création device tactile LVGL");
         i2c_driver_delete(I2C_PORT);
         return ESP_FAIL;
     }
+    
+    lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
+    lv_indev_set_read_cb(indev, touch_read);
     
     touch_initialized = true;
     ESP_LOGI(TAG, "Driver tactile GT911 initialisé avec succès");

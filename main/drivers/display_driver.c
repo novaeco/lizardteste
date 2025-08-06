@@ -24,16 +24,15 @@ static const char *TAG = "Display_Driver";
 #define PIN_BCKL        2
 
 // Configuration SPI
-#define SPI_HOST        SPI2_HOST
+#define DISPLAY_SPI_HOST SPI2_HOST
 #define SPI_DMA_CHAN    SPI_DMA_CH_AUTO
 #define SPI_FREQUENCY   40000000    // 40MHz
 
 // Variables globales
 static spi_device_handle_t spi_handle;
-static lv_disp_draw_buf_t disp_buf;
+static lv_display_t *display;
 static lv_color_t *buf1 = NULL;
 static lv_color_t *buf2 = NULL;
-static lv_disp_drv_t disp_drv;
 
 /**
  * @brief Envoie une commande au contrôleur ST7262
@@ -132,11 +131,11 @@ static void st7262_init(void)
 
 /**
  * @brief Callback LVGL pour le flush de l'affichage
- * @param disp_drv Driver d'affichage LVGL
+ * @param disp Display LVGL
  * @param area Zone à rafraîchir
  * @param color_p Données de couleur
  */
-static void display_flush(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color_p)
+static void display_flush(lv_display_t *disp, const lv_area_t *area, lv_color_t *color_p)
 {
     uint32_t size = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1);
     
@@ -159,7 +158,7 @@ static void display_flush(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_col
     st7262_send_cmd(0x2C);
     st7262_send_data((uint8_t*)color_p, size * 2);
     
-    lv_disp_flush_ready(disp_drv);
+    lv_display_flush_ready(disp);
 }
 
 /**
@@ -224,7 +223,7 @@ esp_err_t display_driver_init(void)
         .max_transfer_sz = DISPLAY_BUF_SIZE * 2,
     };
     
-    ret = spi_bus_initialize(SPI_HOST, &buscfg, SPI_DMA_CHAN);
+    ret = spi_bus_initialize(DISPLAY_SPI_HOST, &buscfg, SPI_DMA_CHAN);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur initialisation bus SPI");
         return ret;
@@ -238,7 +237,7 @@ esp_err_t display_driver_init(void)
         .pre_cb = st7262_spi_pre_transfer_callback,
     };
     
-    ret = spi_bus_add_device(SPI_HOST, &devcfg, &spi_handle);
+    ret = spi_bus_add_device(DISPLAY_SPI_HOST, &devcfg, &spi_handle);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur ajout device SPI");
         return ret;
@@ -264,19 +263,15 @@ esp_err_t display_driver_init(void)
     }
     
     // Configuration LVGL
-    lv_disp_draw_buf_init(&disp_buf, buf1, buf2, DISPLAY_BUF_SIZE);
-    
-    lv_disp_drv_init(&disp_drv);
-    disp_drv.hor_res = DISPLAY_WIDTH;
-    disp_drv.ver_res = DISPLAY_HEIGHT;
-    disp_drv.flush_cb = display_flush;
-    disp_drv.draw_buf = &disp_buf;
-    
-    lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
-    if (!disp) {
-        ESP_LOGE(TAG, "Erreur enregistrement driver LVGL");
+    display = lv_display_create(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+    if (!display) {
+        ESP_LOGE(TAG, "Erreur création display LVGL");
         return ESP_FAIL;
     }
+    
+    lv_display_set_flush_cb(display, display_flush);
+    lv_display_set_buffers(display, buf1, buf2, DISPLAY_BUF_SIZE * sizeof(lv_color_t), LV_DISPLAY_RENDER_MODE_PARTIAL);
+    
     
     ESP_LOGI(TAG, "Driver d'affichage ST7262 initialisé avec succès");
     return ESP_OK;
@@ -294,7 +289,7 @@ void display_driver_deinit(void)
     }
     
     spi_bus_remove_device(spi_handle);
-    spi_bus_free(SPI_HOST);
+    spi_bus_free(DISPLAY_SPI_HOST);
     
     ESP_LOGI(TAG, "Driver d'affichage désactivé");
 }

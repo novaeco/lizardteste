@@ -66,7 +66,7 @@ static void init_container_styles(void)
     lv_style_set_border_width(&style_sidebar_bg, 0);
     lv_style_set_shadow_width(&style_sidebar_bg, SHADOW_WIDTH);
     lv_style_set_shadow_color(&style_sidebar_bg, COLOR_SHADOW);
-    lv_style_set_shadow_opa(&style_sidebar_bg, LV_OPA_5);
+    lv_style_set_shadow_opa(&style_sidebar_bg, LV_OPA_10);
     
     // Style contenu principal
     lv_style_init(&style_content_bg);

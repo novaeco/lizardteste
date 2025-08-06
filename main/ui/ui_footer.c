@@ -7,6 +7,7 @@
 #include "ui_footer.h"
 #include "ui_styles.h"
 #include "esp_log.h"
+#include "esp_random.h"
 #include <stdio.h>
 
 static const char *TAG = "UI_Footer";
