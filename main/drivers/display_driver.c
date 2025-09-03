@@ -9,6 +9,7 @@
 #include "driver/gpio.h"
 #include "driver/ledc.h"
 #include "esp_log.h"
+#include "esp_attr.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <string.h>
@@ -231,7 +232,7 @@ esp_err_t display_driver_init(void)
         .sclk_io_num = PIN_CLK,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
-        .max_transfer_sz = DISPLAY_BUF_SIZE * 2,
+        .max_transfer_sz = MIN(DISPLAY_BUF_SIZE * 2, SPI_MAX_TRANSFER_BYTES),
     };
     
     ret = spi_bus_initialize(DISPLAY_SPI_HOST, &buscfg, SPI_DMA_CHAN);
