@@ -35,6 +35,13 @@ static lv_style_t style_nav_normal;
 static lv_style_t style_nav_active;
 static lv_style_t style_nav_hover;
 
+// Styles pour les indicateurs et états
+static lv_style_t style_nav_indicator;
+static lv_style_t style_status_ok;
+static lv_style_t style_alert_level_critical;
+static lv_style_t style_alert_level_warning;
+static lv_style_t style_alert_level_info;
+
 /**
  * @brief Initialise les styles des conteneurs principaux
  */
@@ -213,6 +220,45 @@ static void init_navigation_styles(void)
     lv_style_set_border_width(&style_nav_hover, 0);
 }
 
+/**
+ * @brief Initialise les styles d'indicateurs et d'états
+ */
+static void init_indicator_styles(void)
+{
+    // Indicateur de notification pour la sidebar
+    lv_style_init(&style_nav_indicator);
+    lv_style_set_bg_color(&style_nav_indicator, COLOR_ACCENT_ORANGE);
+    lv_style_set_bg_opa(&style_nav_indicator, LV_OPA_COVER);
+    lv_style_set_radius(&style_nav_indicator, 4);
+    lv_style_set_border_width(&style_nav_indicator, 0);
+
+    // Indicateur de statut OK
+    lv_style_init(&style_status_ok);
+    lv_style_set_bg_color(&style_status_ok, COLOR_ACCENT_GREEN);
+    lv_style_set_bg_opa(&style_status_ok, LV_OPA_COVER);
+    lv_style_set_radius(&style_status_ok, 12);
+    lv_style_set_border_width(&style_status_ok, 0);
+
+    // Niveaux d'alerte
+    lv_style_init(&style_alert_level_critical);
+    lv_style_set_bg_color(&style_alert_level_critical, COLOR_ACCENT_ORANGE);
+    lv_style_set_bg_opa(&style_alert_level_critical, LV_OPA_COVER);
+    lv_style_set_radius(&style_alert_level_critical, 3);
+    lv_style_set_border_width(&style_alert_level_critical, 0);
+
+    lv_style_init(&style_alert_level_warning);
+    lv_style_set_bg_color(&style_alert_level_warning, COLOR_ACCENT_ORANGE);
+    lv_style_set_bg_opa(&style_alert_level_warning, LV_OPA_COVER);
+    lv_style_set_radius(&style_alert_level_warning, 3);
+    lv_style_set_border_width(&style_alert_level_warning, 0);
+
+    lv_style_init(&style_alert_level_info);
+    lv_style_set_bg_color(&style_alert_level_info, COLOR_ACCENT_BLUE);
+    lv_style_set_bg_opa(&style_alert_level_info, LV_OPA_COVER);
+    lv_style_set_radius(&style_alert_level_info, 3);
+    lv_style_set_border_width(&style_alert_level_info, 0);
+}
+
 esp_err_t ui_styles_init(void)
 {
     ESP_LOGI(TAG, "Initialisation des styles NovaReptileElevage");
@@ -222,6 +268,7 @@ esp_err_t ui_styles_init(void)
     init_card_styles();
     init_text_styles();
     init_navigation_styles();
+    init_indicator_styles();
     
     ESP_LOGI(TAG, "Styles initialisés avec succès");
     return ESP_OK;
@@ -254,3 +301,10 @@ lv_style_t* ui_styles_get_text_small(void) { return &style_text_small; }
 lv_style_t* ui_styles_get_nav_item_normal(void) { return &style_nav_normal; }
 lv_style_t* ui_styles_get_nav_item_active(void) { return &style_nav_active; }
 lv_style_t* ui_styles_get_nav_item_hover(void) { return &style_nav_hover; }
+
+// Getters pour les styles d'indicateurs et d'états
+lv_style_t* ui_styles_get_nav_indicator(void) { return &style_nav_indicator; }
+lv_style_t* ui_styles_get_status_ok(void) { return &style_status_ok; }
+lv_style_t* ui_styles_get_alert_level_critical(void) { return &style_alert_level_critical; }
+lv_style_t* ui_styles_get_alert_level_warning(void) { return &style_alert_level_warning; }
+lv_style_t* ui_styles_get_alert_level_info(void) { return &style_alert_level_info; }
