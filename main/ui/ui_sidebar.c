@@ -78,7 +78,7 @@ static void menu_item_event_cb(lv_event_t *e)
  * @param y_pos Position Y
  * @return esp_err_t Code d'erreur
  */
-static esp_err_t create_menu_item(lv_obj_t *parent, int index, int y_pos)
+static esp_err_t create_menu_item(lv_obj_t *parent, int index)
 {
     sidebar_item_t *item = &menu_items[index];
     
@@ -90,26 +90,28 @@ static esp_err_t create_menu_item(lv_obj_t *parent, int index, int y_pos)
     
     lv_obj_remove_style_all(item->container);
     lv_obj_add_style(item->container, ui_styles_get_nav_item_normal(), 0);
-    lv_obj_set_size(item->container, SIDEBAR_WIDTH - 24, 50);
-    lv_obj_set_pos(item->container, 0, y_pos);
+    lv_obj_set_size(item->container, LV_PCT(100), 50);
+    lv_obj_set_style_margin_bottom(item->container, 10, 0);
     lv_obj_add_flag(item->container, LV_OBJ_FLAG_CLICKABLE);
+
+    lv_obj_set_flex_flow(item->container, LV_FLEX_FLOW_ROW);
+    lv_obj_set_style_pad_all(item->container, 8, 0);
+    lv_obj_set_style_pad_gap(item->container, 10, 0);
     
     // Icône
     item->icon = lv_label_create(item->container);
     lv_label_set_text(item->icon, menu_data[index].icon);
-    lv_obj_set_pos(item->icon, 12, 12);
     lv_obj_add_style(item->icon, ui_styles_get_text_subtitle(), 0);
     
     // Label
     item->label = lv_label_create(item->container);
     lv_label_set_text(item->label, menu_data[index].label);
-    lv_obj_set_pos(item->label, 45, 15);
     lv_obj_add_style(item->label, ui_styles_get_text_body(), 0);
+    lv_obj_set_flex_grow(item->label, 1);
     
     // Indicateur (pour notifications, compteurs, etc.)
     item->indicator = lv_obj_create(item->container);
     lv_obj_set_size(item->indicator, 8, 8);
-    lv_obj_set_pos(item->indicator, SIDEBAR_WIDTH - 40, 21);
     lv_obj_add_flag(item->indicator, LV_OBJ_FLAG_HIDDEN); // Caché par défaut
     lv_obj_add_style(item->indicator, ui_styles_get_nav_indicator(), 0);
     
@@ -133,12 +135,14 @@ esp_err_t ui_sidebar_init(lv_obj_t *parent)
     ESP_LOGI(TAG, "Initialisation de la sidebar");
     
     sidebar_container = parent;
-    
+
+    lv_obj_set_flex_flow(parent, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_style_pad_all(parent, 12, 0);
+    lv_obj_set_style_pad_gap(parent, 10, 0);
+
     // Création des éléments de menu
     for (int i = 0; i < SCREEN_COUNT; i++) {
-        int y_pos = i * 60 + 20; // Espacement de 60px entre les éléments
-        
-        esp_err_t ret = create_menu_item(parent, i, y_pos);
+        esp_err_t ret = create_menu_item(parent, i);
         if (ret != ESP_OK) {
             ESP_LOGE(TAG, "Erreur création élément menu %d", i);
             return ret;

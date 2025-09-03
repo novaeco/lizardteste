@@ -73,7 +73,7 @@ static lv_obj_t* create_logo(lv_obj_t *parent)
     lv_obj_t *logo = lv_label_create(parent);
     lv_label_set_text(logo, LV_SYMBOL_IMAGE);
     lv_obj_add_style(logo, ui_styles_get_text_title(), 0);
-    lv_obj_set_pos(logo, 10, 10);
+    lv_obj_set_style_margin_right(logo, 10, 0);
 
     return logo;
 }
@@ -88,8 +88,8 @@ static lv_obj_t* create_title(lv_obj_t *parent)
     lv_obj_t *title = lv_label_create(parent);
     lv_label_set_text(title, "NovaReptileElevage");
     lv_obj_add_style(title, ui_styles_get_text_title(), 0);
-    lv_obj_set_pos(title, 60, 15);
-    
+    lv_obj_set_flex_grow(title, 1);
+
     return title;
 }
 
@@ -102,7 +102,7 @@ static lv_obj_t* create_connection_indicator(lv_obj_t *parent)
 {
     lv_obj_t *indicator = lv_obj_create(parent);
     lv_obj_set_size(indicator, 12, 12);
-    lv_obj_set_pos(indicator, 680, 24);
+    lv_obj_set_style_margin_right(indicator, 10, 0);
 
     lv_obj_add_style(indicator, &style_connected, 0);
 
@@ -119,8 +119,8 @@ static lv_obj_t* create_time_display(lv_obj_t *parent)
     lv_obj_t *time_label = lv_label_create(parent);
     lv_label_set_text(time_label, "12:34");
     lv_obj_add_style(time_label, ui_styles_get_text_body(), 0);
-    lv_obj_set_pos(time_label, 700, 20);
-    
+    lv_obj_set_style_margin_right(time_label, 10, 0);
+
     return time_label;
 }
 
@@ -133,7 +133,7 @@ static lv_obj_t* create_profile_button(lv_obj_t *parent)
 {
     lv_obj_t *btn = lv_btn_create(parent);
     lv_obj_set_size(btn, 40, 40);
-    lv_obj_set_pos(btn, 720, 10);
+    lv_obj_set_style_margin_right(btn, 10, 0);
     lv_obj_add_style(btn, ui_styles_get_button_secondary(), 0);
 
     lv_obj_t *img = lv_img_create(btn);
@@ -154,7 +154,6 @@ static lv_obj_t* create_settings_button(lv_obj_t *parent)
 {
     lv_obj_t *btn = lv_btn_create(parent);
     lv_obj_set_size(btn, 40, 40);
-    lv_obj_set_pos(btn, 770, 10);
     lv_obj_add_style(btn, ui_styles_get_button_primary(), 0);
 
     lv_obj_t *label = lv_label_create(btn);
@@ -176,6 +175,12 @@ esp_err_t ui_header_init(lv_obj_t *parent)
     ESP_LOGI(TAG, "Initialisation du header");
 
     init_header_styles();
+
+    /* Configuration du layout flex pour le conteneur header */
+    lv_obj_set_flex_flow(parent, LV_FLEX_FLOW_ROW);
+    lv_obj_set_style_pad_all(parent, 10, 0);
+    lv_obj_set_style_pad_gap(parent, 10, 0);
+    lv_obj_set_flex_align(parent, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
     // Création des composants du header
     header_logo = create_logo(parent);
