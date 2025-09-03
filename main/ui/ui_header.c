@@ -83,7 +83,7 @@ static void msgbox_event_cb(lv_event_t *e)
     lv_obj_t *obj = lv_event_get_target(e);
     ESP_LOGD(TAG, "msgbox_event_cb code=%d", code);
     if (code == LV_EVENT_VALUE_CHANGED) {
-        const char *btn_txt = lv_msgbox_get_active_btn_text(obj);
+        const char *btn_txt = lv_msgbox_get_active_button_text(obj);
         ESP_LOGI(TAG, "Bouton message box: %s", btn_txt);
         lv_obj_del_async(obj);
         if (obj == profile_menu) {
@@ -104,12 +104,15 @@ esp_err_t ui_header_open_profile_menu(void)
     }
 
     static const char *btns[] = {"Fermer", ""};
-    profile_menu = lv_msgbox_create(lv_scr_act(), "Profil", "Menu profil", btns, false);
+    profile_menu = lv_msgbox_create(lv_scr_act());
     if (!profile_menu) {
         ESP_LOGE(TAG, "Création menu profil échouée");
         return ESP_ERR_NO_MEM;
     }
 
+    lv_msgbox_add_title(profile_menu, "Profil");
+    lv_msgbox_add_text(profile_menu, "Menu profil");
+    lv_msgbox_add_footer_buttons(profile_menu, btns, 0);
     lv_obj_center(profile_menu);
     lv_obj_add_event_cb(profile_menu, msgbox_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
     ESP_LOGI(TAG, "Menu profil ouvert");
@@ -124,12 +127,15 @@ esp_err_t ui_header_open_quick_settings(void)
     }
 
     static const char *btns[] = {"Fermer", ""};
-    quick_settings_panel = lv_msgbox_create(lv_scr_act(), "Réglages rapides", "Panneau en développement", btns, false);
+    quick_settings_panel = lv_msgbox_create(lv_scr_act());
     if (!quick_settings_panel) {
         ESP_LOGE(TAG, "Création panneau réglages rapides échouée");
         return ESP_ERR_NO_MEM;
     }
 
+    lv_msgbox_add_title(quick_settings_panel, "Réglages rapides");
+    lv_msgbox_add_text(quick_settings_panel, "Panneau en développement");
+    lv_msgbox_add_footer_buttons(quick_settings_panel, btns, 0);
     lv_obj_center(quick_settings_panel);
     lv_obj_add_event_cb(quick_settings_panel, msgbox_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
     ESP_LOGI(TAG, "Panneau réglages rapides ouvert");
