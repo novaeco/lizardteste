@@ -259,7 +259,7 @@ esp_err_t display_driver_init(void)
         goto fail;
     }
     
-    // Allocation des buffers LVGL
+    // Allocation des buffers LVGL en mémoire DMA
     buf1 = heap_caps_malloc(DISPLAY_BUF_SIZE * sizeof(lv_color_t), MALLOC_CAP_DMA);
     buf2 = heap_caps_malloc(DISPLAY_BUF_SIZE * sizeof(lv_color_t), MALLOC_CAP_DMA);
     
@@ -286,11 +286,11 @@ esp_err_t display_driver_init(void)
 
 fail:
     if (buf1) {
-        free(buf1);
+        heap_caps_free(buf1); // Libération mémoire DMA (alloc via heap_caps_malloc)
         buf1 = NULL;
     }
     if (buf2) {
-        free(buf2);
+        heap_caps_free(buf2); // Libération mémoire DMA (alloc via heap_caps_malloc)
         buf2 = NULL;
     }
     if (spi_handle) {
@@ -322,11 +322,11 @@ void display_driver_deinit(void)
     ledc_timer_rst(LEDC_LOW_SPEED_MODE, LEDC_TIMER_0);
 
     if (buf1) {
-        free(buf1);
+        heap_caps_free(buf1); // Libération mémoire DMA (alloc via heap_caps_malloc)
         buf1 = NULL;
     }
     if (buf2) {
-        free(buf2);
+        heap_caps_free(buf2); // Libération mémoire DMA (alloc via heap_caps_malloc)
         buf2 = NULL;
     }
 
