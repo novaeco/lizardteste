@@ -266,18 +266,43 @@ void touch_driver_deinit(void)
     }
 }
 
+/**
+ * @brief Active ou met en sommeil le GT911 en pilotant RST et INT.
+ *
+ * Lorsque @p enable vaut true, la broche RST est relâchée et INT est
+ * configurée en entrée afin de réactiver les interruptions. Lorsque
+ * @p enable vaut false, RST est maintenue à l'état bas et INT est forcée à 0
+ * pour mettre le contrôleur en veille et bloquer les IRQ.
+ */
 void touch_set_enable(bool enable)
 {
     if (!touch_initialized) return;
-    
     if (enable) {
         ESP_LOGI(TAG, "Tactile activé");
+
+        /*
+         * Séquence de réveil :
+         *  - forcer INT à 0 pour éviter une interruption parasite
+         *  - relâcher RST pour sortir le contrôleur du reset
+         *  - reconfigurer INT en entrée (IRQ)
+         */
+        gpio_set_direction(PIN_INT, GPIO_MODE_OUTPUT);
+        gpio_set_level(PIN_INT, 0);
+        gpio_set_level(PIN_RST, 1);
+        vTaskDelay(pdMS_TO_TICKS(50));
+        gpio_set_direction(PIN_INT, GPIO_MODE_INPUT);
     } else {
         ESP_LOGI(TAG, "Tactile désactivé");
+
+        /*
+         * Mise en sommeil :
+         *  - placer RST à 0 pour couper le contrôleur
+         *  - maintenir INT à 0 afin de désactiver l'IRQ
+         */
+        gpio_set_direction(PIN_INT, GPIO_MODE_OUTPUT);
+        gpio_set_level(PIN_INT, 0);
+        gpio_set_level(PIN_RST, 0);
     }
-    
-    // Configuration d'activation/désactivation du GT911
-    // (implémentation spécifique selon les besoins)
 }
 
 esp_err_t touch_calibrate(void)
