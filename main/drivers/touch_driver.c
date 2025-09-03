@@ -6,11 +6,12 @@
 
 #include "touch_driver.h"
 #include "driver/gpio.h"
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "esp_log.h"
 #include "esp_attr.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include <string.h>
 
 static const char *TAG = "Touch_Driver";
 
@@ -41,6 +42,8 @@ typedef struct {
 
 static bool touch_initialized = false;
 static volatile bool touch_pressed = false;
+static i2c_master_bus_handle_t i2c_bus = NULL;
+static i2c_master_dev_handle_t gt911_dev = NULL;
 
 /**
  * @brief ISR appelée sur front descendant de la ligne INT du GT911.
@@ -62,24 +65,9 @@ static void IRAM_ATTR touch_isr_handler(void *arg) {
  * @return esp_err_t Code d'erreur
  */
 static esp_err_t gt911_read_reg(uint16_t reg_addr, uint8_t *data, size_t len) {
-  i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-
-  // Écriture de l'adresse du registre
-  i2c_master_start(cmd);
-  i2c_master_write_byte(cmd, (GT911_ADDR << 1) | I2C_MASTER_WRITE, true);
-  i2c_master_write_byte(cmd, (reg_addr >> 8) & 0xFF, true);
-  i2c_master_write_byte(cmd, reg_addr & 0xFF, true);
-
-  // Lecture des données
-  i2c_master_start(cmd);
-  i2c_master_write_byte(cmd, (GT911_ADDR << 1) | I2C_MASTER_READ, true);
-  i2c_master_read(cmd, data, len, I2C_MASTER_LAST_NACK);
-  i2c_master_stop(cmd);
-
-  esp_err_t ret = i2c_master_cmd_begin(I2C_PORT, cmd, pdMS_TO_TICKS(100));
-  i2c_cmd_link_delete(cmd);
-
-  return ret;
+  uint8_t reg[2] = {(uint8_t)((reg_addr >> 8) & 0xFF), (uint8_t)(reg_addr & 0xFF)};
+  return i2c_master_transmit_receive(gt911_dev, reg, sizeof(reg), data, len,
+                                     1000);
 }
 
 /**
@@ -91,19 +79,11 @@ static esp_err_t gt911_read_reg(uint16_t reg_addr, uint8_t *data, size_t len) {
  */
 static esp_err_t gt911_write_reg(uint16_t reg_addr, const uint8_t *data,
                                  size_t len) {
-  i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-
-  i2c_master_start(cmd);
-  i2c_master_write_byte(cmd, (GT911_ADDR << 1) | I2C_MASTER_WRITE, true);
-  i2c_master_write_byte(cmd, (reg_addr >> 8) & 0xFF, true);
-  i2c_master_write_byte(cmd, reg_addr & 0xFF, true);
-  i2c_master_write(cmd, data, len, true);
-  i2c_master_stop(cmd);
-
-  esp_err_t ret = i2c_master_cmd_begin(I2C_PORT, cmd, pdMS_TO_TICKS(100));
-  i2c_cmd_link_delete(cmd);
-
-  return ret;
+  uint8_t buf[2 + len];
+  buf[0] = (reg_addr >> 8) & 0xFF;
+  buf[1] = reg_addr & 0xFF;
+  memcpy(&buf[2], data, len);
+  return i2c_master_transmit(gt911_dev, buf, sizeof(buf), 1000);
 }
 
 /**
@@ -279,25 +259,30 @@ esp_err_t touch_driver_init(void) {
     return ret;
   }
 
-  // Configuration I2C
-  i2c_config_t i2c_conf = {
-      .mode = I2C_MODE_MASTER,
+  // Configuration du bus I2C et ajout du périphérique GT911
+  i2c_master_bus_config_t bus_conf = {
+      .i2c_port = I2C_PORT,
       .sda_io_num = PIN_SDA,
       .scl_io_num = PIN_SCL,
-      .sda_pullup_en = GPIO_PULLUP_ENABLE,
-      .scl_pullup_en = GPIO_PULLUP_ENABLE,
-      .master.clk_speed = I2C_FREQUENCY,
   };
 
-  ret = i2c_param_config(I2C_PORT, &i2c_conf);
+  ret = i2c_new_master_bus(&bus_conf, &i2c_bus);
   if (ret != ESP_OK) {
-    ESP_LOGE(TAG, "Erreur configuration I2C");
+    ESP_LOGE(TAG, "Erreur création bus I2C");
     return ret;
   }
 
-  ret = i2c_driver_install(I2C_PORT, I2C_MODE_MASTER, 0, 0, 0);
+  i2c_device_config_t dev_conf = {
+      .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+      .device_address = GT911_ADDR,
+      .scl_speed_hz = I2C_FREQUENCY,
+  };
+
+  ret = i2c_master_bus_add_device(i2c_bus, &dev_conf, &gt911_dev);
   if (ret != ESP_OK) {
-    ESP_LOGE(TAG, "Erreur installation driver I2C");
+    ESP_LOGE(TAG, "Erreur ajout device I2C");
+    i2c_del_master_bus(i2c_bus);
+    i2c_bus = NULL;
     return ret;
   }
 
@@ -305,7 +290,10 @@ esp_err_t touch_driver_init(void) {
   ret = gt911_init();
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Erreur initialisation GT911");
-    i2c_driver_delete(I2C_PORT);
+    i2c_master_bus_rm_device(gt911_dev);
+    i2c_del_master_bus(i2c_bus);
+    gt911_dev = NULL;
+    i2c_bus = NULL;
     return ret;
   }
 
@@ -313,7 +301,10 @@ esp_err_t touch_driver_init(void) {
   lv_indev_t *indev = lv_indev_create();
   if (!indev) {
     ESP_LOGE(TAG, "Erreur création device tactile LVGL");
-    i2c_driver_delete(I2C_PORT);
+    i2c_master_bus_rm_device(gt911_dev);
+    i2c_del_master_bus(i2c_bus);
+    gt911_dev = NULL;
+    i2c_bus = NULL;
     return ESP_FAIL;
   }
 
@@ -330,7 +321,14 @@ void touch_driver_deinit(void) {
   if (touch_initialized) {
     gpio_isr_handler_remove(PIN_INT);
     gpio_uninstall_isr_service();
-    i2c_driver_delete(I2C_PORT);
+    if (gt911_dev) {
+      i2c_master_bus_rm_device(gt911_dev);
+      gt911_dev = NULL;
+    }
+    if (i2c_bus) {
+      i2c_del_master_bus(i2c_bus);
+      i2c_bus = NULL;
+    }
     touch_initialized = false;
     ESP_LOGI(TAG, "Driver tactile désactivé");
   }
