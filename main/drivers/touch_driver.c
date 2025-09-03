@@ -40,6 +40,19 @@ typedef struct {
 } gt911_point_t;
 
 static bool touch_initialized = false;
+static volatile bool touch_pressed = false;
+
+/**
+ * @brief ISR appelée sur front descendant de la ligne INT du GT911.
+ *
+ * Cette routine se contente de mémoriser qu'un évènement tactile est
+ * disponible. Le traitement complet est réalisé dans le contexte de
+ * `touch_read` afin de limiter la charge de l'ISR.
+ */
+static void IRAM_ATTR touch_isr_handler(void *arg) {
+  (void)arg;
+  touch_pressed = true;
+}
 
 /**
  * @brief Lit des données depuis le GT911 via I2C
@@ -139,6 +152,12 @@ static void touch_read(lv_indev_t *indev, lv_indev_data_t *data) {
   static uint16_t last_x = 0, last_y = 0;
 
   if (point_index >= total_points) {
+    if (!touch_pressed) {
+      data->state = LV_INDEV_STATE_REL;
+      data->continue_reading = false;
+      return;
+    }
+
     // Lecture du statut tactile
     uint8_t status;
     esp_err_t ret = gt911_read_reg(GT911_REG_STATUS, &status, 1);
@@ -146,6 +165,7 @@ static void touch_read(lv_indev_t *indev, lv_indev_data_t *data) {
     if (ret != ESP_OK) {
       data->state = LV_INDEV_STATE_REL;
       data->continue_reading = false;
+      touch_pressed = false;
       return;
     }
 
@@ -186,6 +206,8 @@ static void touch_read(lv_indev_t *indev, lv_indev_data_t *data) {
       uint8_t clear = 0;
       gt911_write_reg(GT911_REG_STATUS, &clear, 1);
     }
+
+    touch_pressed = false;
   }
 
   if (point_index < total_points) {
@@ -244,6 +266,19 @@ esp_err_t touch_driver_init(void) {
     return ret;
   }
 
+  ret = gpio_install_isr_service(0);
+  if (ret != ESP_OK && ret != ESP_ERR_INVALID_STATE) {
+    ESP_LOGE(TAG, "Erreur installation service ISR");
+    return ret;
+  }
+
+  ret = gpio_isr_handler_add(PIN_INT, touch_isr_handler, NULL);
+  if (ret != ESP_OK) {
+    ESP_LOGE(TAG, "Erreur ajout handler ISR");
+    gpio_uninstall_isr_service();
+    return ret;
+  }
+
   // Configuration I2C
   i2c_config_t i2c_conf = {
       .mode = I2C_MODE_MASTER,
@@ -293,6 +328,8 @@ esp_err_t touch_driver_init(void) {
 
 void touch_driver_deinit(void) {
   if (touch_initialized) {
+    gpio_isr_handler_remove(PIN_INT);
+    gpio_uninstall_isr_service();
     i2c_driver_delete(I2C_PORT);
     touch_initialized = false;
     ESP_LOGI(TAG, "Driver tactile désactivé");
