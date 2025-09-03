@@ -31,35 +31,40 @@ static esp_err_t create_main_layout(void)
     
     lv_obj_remove_style_all(g_nova_ui.main_screen);
     lv_obj_add_style(g_nova_ui.main_screen, ui_styles_get_main_bg(), 0);
-    lv_obj_set_size(g_nova_ui.main_screen, SCREEN_WIDTH, SCREEN_HEIGHT);
-    
+
+    /* Mise en place du layout grid principal pour éviter les positions absolues */
+    static lv_coord_t col_dsc[] = {SIDEBAR_WIDTH, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+    static lv_coord_t row_dsc[] = {HEADER_HEIGHT, LV_GRID_FR(1), FOOTER_HEIGHT, LV_GRID_TEMPLATE_LAST};
+    lv_obj_set_layout(g_nova_ui.main_screen, LV_LAYOUT_GRID);
+    lv_obj_set_grid_dsc_array(g_nova_ui.main_screen, col_dsc, row_dsc);
+
     // Création du conteneur header (barre de titre)
     g_nova_ui.header_container = lv_obj_create(g_nova_ui.main_screen);
     lv_obj_remove_style_all(g_nova_ui.header_container);
     lv_obj_add_style(g_nova_ui.header_container, ui_styles_get_header_bg(), 0);
-    lv_obj_set_pos(g_nova_ui.header_container, 0, 0);
-    lv_obj_set_size(g_nova_ui.header_container, SCREEN_WIDTH, HEADER_HEIGHT);
-    
+    lv_obj_set_grid_cell(g_nova_ui.header_container, LV_GRID_ALIGN_STRETCH, 0, 2,
+                         LV_GRID_ALIGN_STRETCH, 0, 1);
+
     // Création du conteneur sidebar (menu latéral)
     g_nova_ui.sidebar_container = lv_obj_create(g_nova_ui.main_screen);
     lv_obj_remove_style_all(g_nova_ui.sidebar_container);
     lv_obj_add_style(g_nova_ui.sidebar_container, ui_styles_get_sidebar_bg(), 0);
-    lv_obj_set_pos(g_nova_ui.sidebar_container, 0, HEADER_HEIGHT);
-    lv_obj_set_size(g_nova_ui.sidebar_container, SIDEBAR_WIDTH, CONTENT_HEIGHT);
-    
+    lv_obj_set_grid_cell(g_nova_ui.sidebar_container, LV_GRID_ALIGN_STRETCH, 0, 1,
+                         LV_GRID_ALIGN_STRETCH, 1, 1);
+
     // Création du conteneur de contenu principal
     g_nova_ui.content_container = lv_obj_create(g_nova_ui.main_screen);
     lv_obj_remove_style_all(g_nova_ui.content_container);
     lv_obj_add_style(g_nova_ui.content_container, ui_styles_get_content_bg(), 0);
-    lv_obj_set_pos(g_nova_ui.content_container, SIDEBAR_WIDTH, HEADER_HEIGHT);
-    lv_obj_set_size(g_nova_ui.content_container, CONTENT_WIDTH, CONTENT_HEIGHT);
-    
+    lv_obj_set_grid_cell(g_nova_ui.content_container, LV_GRID_ALIGN_STRETCH, 1, 1,
+                         LV_GRID_ALIGN_STRETCH, 1, 1);
+
     // Création du conteneur footer (barre d'état)
     g_nova_ui.footer_container = lv_obj_create(g_nova_ui.main_screen);
     lv_obj_remove_style_all(g_nova_ui.footer_container);
     lv_obj_add_style(g_nova_ui.footer_container, ui_styles_get_footer_bg(), 0);
-    lv_obj_set_pos(g_nova_ui.footer_container, 0, SCREEN_HEIGHT - FOOTER_HEIGHT);
-    lv_obj_set_size(g_nova_ui.footer_container, SCREEN_WIDTH, FOOTER_HEIGHT);
+    lv_obj_set_grid_cell(g_nova_ui.footer_container, LV_GRID_ALIGN_STRETCH, 0, 2,
+                         LV_GRID_ALIGN_STRETCH, 2, 1);
     
     ESP_LOGI(TAG, "Layout principal créé avec succès");
     return ESP_OK;

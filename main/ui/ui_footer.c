@@ -26,18 +26,26 @@ static lv_obj_t *footer_system_info;
  */
 static esp_err_t create_wifi_indicator(lv_obj_t *parent)
 {
+    lv_obj_t *cont = lv_obj_create(parent);
+    if (!cont) {
+        return ESP_ERR_NO_MEM;
+    }
+
+    lv_obj_remove_style_all(cont);
+    lv_obj_set_flex_flow(cont, LV_FLEX_FLOW_ROW);
+    lv_obj_set_style_pad_gap(cont, 5, 0);
+    lv_obj_set_style_bg_opa(cont, LV_OPA_TRANSP, 0);
+
     // Icône Wi-Fi
-    footer_wifi_icon = lv_label_create(parent);
+    footer_wifi_icon = lv_label_create(cont);
     lv_label_set_text(footer_wifi_icon, LV_SYMBOL_WIFI);
     lv_obj_add_style(footer_wifi_icon, ui_styles_get_text_small(), 0);
-    lv_obj_set_pos(footer_wifi_icon, 10, 8);
-    
+
     // Texte statut Wi-Fi
-    footer_wifi_text = lv_label_create(parent);
+    footer_wifi_text = lv_label_create(cont);
     lv_label_set_text(footer_wifi_text, "Wi-Fi: Connecté");
     lv_obj_add_style(footer_wifi_text, ui_styles_get_text_small(), 0);
-    lv_obj_set_pos(footer_wifi_text, 35, 10);
-    
+
     return ESP_OK;
 }
 
@@ -51,8 +59,7 @@ static esp_err_t create_notifications_indicator(lv_obj_t *parent)
     footer_notifications = lv_label_create(parent);
     lv_label_set_text(footer_notifications, LV_SYMBOL_BELL " 2 notifications");
     lv_obj_add_style(footer_notifications, ui_styles_get_text_small(), 0);
-    lv_obj_set_pos(footer_notifications, 200, 10);
-    
+
     return ESP_OK;
 }
 
@@ -66,8 +73,7 @@ static esp_err_t create_datetime_display(lv_obj_t *parent)
     footer_datetime = lv_label_create(parent);
     lv_label_set_text(footer_datetime, "15 Jan 2025 - 14:32:15");
     lv_obj_add_style(footer_datetime, ui_styles_get_text_small(), 0);
-    lv_obj_set_pos(footer_datetime, 400, 10);
-    
+
     return ESP_OK;
 }
 
@@ -81,8 +87,7 @@ static esp_err_t create_system_info(lv_obj_t *parent)
     footer_system_info = lv_label_create(parent);
     lv_label_set_text(footer_system_info, "CPU: 45% | RAM: 62% | Temp: 38°C");
     lv_obj_add_style(footer_system_info, ui_styles_get_text_small(), 0);
-    lv_obj_set_pos(footer_system_info, 600, 10);
-    
+
     return ESP_OK;
 }
 
@@ -95,27 +100,38 @@ esp_err_t ui_footer_init(lv_obj_t *parent)
     
     ESP_LOGI(TAG, "Initialisation du footer");
     
+    // Mise en place du layout flex pour le footer
+    lv_obj_set_flex_flow(parent, LV_FLEX_FLOW_ROW);
+    lv_obj_set_style_pad_all(parent, 10, 0);
+    lv_obj_set_style_pad_gap(parent, 20, 0);
+    lv_obj_set_flex_align(parent, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+
     // Création des composants
     esp_err_t ret;
-    
+
     ret = create_wifi_indicator(parent);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur création indicateur Wi-Fi");
         return ret;
     }
-    
+
+    /* Espaceur pour pousser les éléments restants à droite */
+    lv_obj_t *spacer = lv_obj_create(parent);
+    lv_obj_remove_style_all(spacer);
+    lv_obj_set_flex_grow(spacer, 1);
+
     ret = create_notifications_indicator(parent);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur création indicateur notifications");
         return ret;
     }
-    
+
     ret = create_datetime_display(parent);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur création affichage date/heure");
         return ret;
     }
-    
+
     ret = create_system_info(parent);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur création informations système");
