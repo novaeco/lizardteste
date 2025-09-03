@@ -13,7 +13,10 @@ endif()
 
 
 # Configuration spécifique LVGL
-target_compile_definitions(${PROJECT_NAME}.elf PRIVATE LV_CONF_INCLUDE_SIMPLE=1)
+target_compile_definitions(${PROJECT_NAME}.elf PRIVATE
+    LV_CONF_INCLUDE_SIMPLE=1
+    LV_FONT_MONTSERRAT_30=1
+)
 
 # ===============================================
 # EXPLICATION DÉTAILLÉE DU FICHIER CMAKE RACINE
