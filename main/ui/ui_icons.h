@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-extern const lv_img_dsc_t ui_img_profile;
+extern const lv_image_dsc_t ui_img_profile;
 
 #ifdef __cplusplus
 }
