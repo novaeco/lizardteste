@@ -317,7 +317,8 @@ Power Management → Enable dynamic frequency scaling (DFS) : [*] (activé)
 
 ### 17. Vérification lv_conf.h
 
-Assurez-vous que `main/lv_conf.h` contient :
+Le fichier `components/lvgl/lv_conf.h` est partagé dans tout le projet via `LV_CONF_INCLUDE_SIMPLE`.
+Assurez-vous que `components/lvgl/lv_conf.h` contient :
 
 ```c
 // Optimisations ESP32-S3

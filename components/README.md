@@ -41,6 +41,7 @@ components/
 
 ## Configuration
 
-- Le fichier de configuration LVGL se trouve dans `main/lv_conf.h`
+- Le fichier de configuration LVGL se trouve dans `components/lvgl/lv_conf.h`
+- Ce fichier est partagé dans tout le projet grâce à la macro `LV_CONF_INCLUDE_SIMPLE`
 - Les paramètres sont optimisés pour ESP32-S3 avec écran 800x480
 - Support tactile GT911 activé

@@ -42,9 +42,12 @@ Interface utilisateur complète pour système d'élevage de reptiles utilisant L
 
 ### Structure des fichiers
 ```
+components/
+└── lvgl/
+    ├── lv_conf.h         # Configuration LVGL partagée
+    └── ...               # Bibliothèque LVGL
 main/
-├── main.c                 # Point d'entrée principal
-├── lv_conf.h             # Configuration LVGL
+├── main.c                # Point d'entrée principal
 ├── ui/                   # Interface utilisateur
 │   ├── ui_main.c/.h      # Gestionnaire principal UI
 │   ├── ui_header.c/.h    # Barre de titre
@@ -56,6 +59,8 @@ main/
     ├── display_driver.c/.h  # ST7262 (800x480)
     └── touch_driver.c/.h    # GT911 (tactile)
 ```
+
+Le fichier `lv_conf.h` est placé dans `components/lvgl/` et, grâce à la définition `LV_CONF_INCLUDE_SIMPLE`, il est accessible à l'ensemble du projet.
 
 ### Écrans disponibles
 1. **Tableau de bord** - Vue d'ensemble du système
@@ -113,7 +118,7 @@ idf.py -p /dev/ttyUSB0 flash monitor
 ```
 
 ### Configuration LVGL
-Le fichier `lv_conf.h` est configuré pour:
+Le fichier `components/lvgl/lv_conf.h` est configuré pour:
 - Profondeur couleur 16-bit (RGB565)
 - Buffer mémoire 64KB
 - Widgets essentiels activés
