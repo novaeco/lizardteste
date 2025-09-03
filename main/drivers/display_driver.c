@@ -16,6 +16,12 @@
 
 static const char *TAG = "Display_Driver";
 
+#ifdef SPI_LL_DMA_MAX_LEN
+static const int SPI_MAX_TRANSFER_BYTES = SPI_LL_DMA_MAX_LEN;
+#else
+static const int SPI_MAX_TRANSFER_BYTES = 32768;
+#endif
+
 // Configuration des broches (Waveshare ESP32-S3 Touch LCD 7")
 #define PIN_MOSI        11
 #define PIN_MISO        13
@@ -61,18 +67,17 @@ static void st7262_send_cmd(uint8_t cmd)
  */
 static void st7262_send_data(const uint8_t *data, int len)
 {
-    esp_err_t ret;
-    spi_transaction_t t;
-    
-    if (len == 0) return;
-    
-    memset(&t, 0, sizeof(t));
-    t.length = len * 8;
-    t.tx_buffer = data;
-    t.user = (void*)1; // D/C = 1 pour données
-    
-    ret = spi_device_polling_transmit(spi_handle, &t);
-    ESP_ERROR_CHECK(ret);
+    while (len > 0) {
+        int chunk = len < SPI_MAX_TRANSFER_BYTES ? len : SPI_MAX_TRANSFER_BYTES;
+        spi_transaction_t t;
+        memset(&t, 0, sizeof(t));
+        t.length = chunk * 8;
+        t.tx_buffer = data;
+        t.user = (void*)1; // D/C = 1 pour données
+        ESP_ERROR_CHECK(spi_device_polling_transmit(spi_handle, &t));
+        data += chunk;
+        len -= chunk;
+    }
 }
 
 /**
