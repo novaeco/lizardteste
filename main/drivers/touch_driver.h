@@ -31,8 +31,9 @@ esp_err_t touch_driver_init(void);
 void touch_driver_deinit(void);
 
 /**
- * @brief Active/désactive le tactile
- * @param enable true pour activer, false pour désactiver
+ * @brief Met le contrôleur GT911 en mode actif ou sommeil
+ *        en manipulant les broches RST/INT.
+ * @param enable true pour activer (réveil), false pour désactiver (sommeil)
  */
 void touch_set_enable(bool enable);
 
