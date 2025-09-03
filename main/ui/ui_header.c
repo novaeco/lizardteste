@@ -18,6 +18,24 @@ static lv_obj_t *header_time;
 static lv_obj_t *header_profile_btn;
 static lv_obj_t *header_settings_btn;
 
+static lv_style_t style_connected;
+static lv_style_t style_disconnected;
+
+static void init_header_styles(void)
+{
+    lv_style_init(&style_connected);
+    lv_style_set_bg_color(&style_connected, COLOR_ACCENT_GREEN);
+    lv_style_set_bg_opa(&style_connected, LV_OPA_COVER);
+    lv_style_set_radius(&style_connected, 6);
+    lv_style_set_border_width(&style_connected, 0);
+
+    lv_style_init(&style_disconnected);
+    lv_style_set_bg_color(&style_disconnected, COLOR_ACCENT_ORANGE);
+    lv_style_set_bg_opa(&style_disconnected, LV_OPA_COVER);
+    lv_style_set_radius(&style_disconnected, 6);
+    lv_style_set_border_width(&style_disconnected, 0);
+}
+
 /**
  * @brief Callback pour le bouton profil
  * @param e Événement LVGL
@@ -84,16 +102,9 @@ static lv_obj_t* create_connection_indicator(lv_obj_t *parent)
     lv_obj_t *indicator = lv_obj_create(parent);
     lv_obj_set_size(indicator, 12, 12);
     lv_obj_set_pos(indicator, 680, 24);
-    
-    static lv_style_t style_indicator;
-    lv_style_init(&style_indicator);
-    lv_style_set_bg_color(&style_indicator, COLOR_ACCENT_GREEN);
-    lv_style_set_bg_opa(&style_indicator, LV_OPA_COVER);
-    lv_style_set_radius(&style_indicator, 6);
-    lv_style_set_border_width(&style_indicator, 0);
-    
-    lv_obj_add_style(indicator, &style_indicator, 0);
-    
+
+    lv_obj_add_style(indicator, &style_connected, 0);
+
     return indicator;
 }
 
@@ -160,9 +171,11 @@ esp_err_t ui_header_init(lv_obj_t *parent)
         ESP_LOGE(TAG, "Conteneur parent invalide");
         return ESP_ERR_INVALID_ARG;
     }
-    
+
     ESP_LOGI(TAG, "Initialisation du header");
-    
+
+    init_header_styles();
+
     // Création des composants du header
     header_logo = create_logo(parent);
     header_title = create_title(parent);
@@ -193,18 +206,9 @@ void ui_header_set_title(const char *title)
 void ui_header_set_connection_status(bool connected)
 {
     if (header_connection_indicator) {
-        static lv_style_t style_connected, style_disconnected;
-        
-        if (connected) {
-            lv_style_init(&style_connected);
-            lv_style_set_bg_color(&style_connected, COLOR_ACCENT_GREEN);
-            lv_obj_add_style(header_connection_indicator, &style_connected, 0);
-        } else {
-            lv_style_init(&style_disconnected);
-            lv_style_set_bg_color(&style_disconnected, COLOR_ACCENT_ORANGE);
-            lv_obj_add_style(header_connection_indicator, &style_disconnected, 0);
-        }
-        
+        lv_obj_add_style(header_connection_indicator,
+                         connected ? &style_connected : &style_disconnected,
+                         0);
         ESP_LOGI(TAG, "État connexion: %s", connected ? "Connecté" : "Déconnecté");
     }
 }
