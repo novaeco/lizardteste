@@ -8,6 +8,7 @@
 #include "driver/gpio.h"
 #include "driver/i2c.h"
 #include "esp_log.h"
+#include "esp_attr.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -39,6 +40,11 @@ typedef struct {
 } gt911_point_t;
 
 static bool touch_initialized = false;
+
+// Préparation pour une gestion interruptive future
+static void IRAM_ATTR touch_isr_handler(void *arg) {
+  // TODO: implémenter la gestion de l'interruption tactile
+}
 
 /**
  * @brief Lit des données depuis le GT911 via I2C
@@ -219,15 +225,33 @@ esp_err_t touch_driver_init(void) {
     return ESP_OK;
   }
 
-  // Configuration des GPIO
-  gpio_config_t io_conf = {
-      .pin_bit_mask = (1ULL << TOUCH_PIN_RST) | (1ULL << PIN_INT),
+  // Configuration de la broche RST (sortie)
+  gpio_config_t rst_conf = {
+      .pin_bit_mask = (1ULL << TOUCH_PIN_RST),
       .mode = GPIO_MODE_OUTPUT,
       .pull_up_en = GPIO_PULLUP_DISABLE,
       .pull_down_en = GPIO_PULLDOWN_DISABLE,
       .intr_type = GPIO_INTR_DISABLE,
   };
-  gpio_config(&io_conf);
+  ret = gpio_config(&rst_conf);
+  if (ret != ESP_OK) {
+    ESP_LOGE(TAG, "Erreur configuration GPIO RST");
+    return ret;
+  }
+
+  // Configuration de la broche INT (entrée avec pull-up)
+  gpio_config_t int_conf = {
+      .pin_bit_mask = (1ULL << PIN_INT),
+      .mode = GPIO_MODE_INPUT,
+      .pull_up_en = GPIO_PULLUP_ENABLE,
+      .pull_down_en = GPIO_PULLDOWN_DISABLE,
+      .intr_type = GPIO_INTR_NEGEDGE, // Préparation pour une ISR
+  };
+  ret = gpio_config(&int_conf);
+  if (ret != ESP_OK) {
+    ESP_LOGE(TAG, "Erreur configuration GPIO INT");
+    return ret;
+  }
 
   // Configuration I2C
   i2c_config_t i2c_conf = {
