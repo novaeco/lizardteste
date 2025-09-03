@@ -80,14 +80,14 @@ Le fichier `lv_conf.h` est placé dans `components/lvgl/` et, grâce à la défi
 #define PIN_CLK     12
 #define PIN_CS      10
 #define PIN_DC      14
-#define PIN_RST     21
+#define DISPLAY_PIN_RST 21
 #define PIN_BCKL    2
 
 // Tactile GT911
 #define PIN_SDA     8
 #define PIN_SCL     9
 #define PIN_INT     18
-#define PIN_RST     17
+#define TOUCH_PIN_RST 17
 ```
 
 ### Paramètres SPI/I2C

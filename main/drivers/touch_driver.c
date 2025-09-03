@@ -17,7 +17,7 @@ static const char *TAG = "Touch_Driver";
 #define PIN_SDA 8
 #define PIN_SCL 9
 #define PIN_INT 18
-#define PIN_RST 17
+#define TOUCH_PIN_RST 17
 
 // Configuration I2C
 #define I2C_PORT I2C_NUM_0
@@ -100,9 +100,9 @@ static esp_err_t gt911_init(void) {
   ESP_LOGI(TAG, "Initialisation du contrôleur GT911");
 
   // Reset du contrôleur
-  gpio_set_level(PIN_RST, 0);
+  gpio_set_level(TOUCH_PIN_RST, 0);
   vTaskDelay(pdMS_TO_TICKS(10));
-  gpio_set_level(PIN_RST, 1);
+  gpio_set_level(TOUCH_PIN_RST, 1);
   vTaskDelay(pdMS_TO_TICKS(100));
 
   // Lecture de l'ID du contrôleur
@@ -221,7 +221,7 @@ esp_err_t touch_driver_init(void) {
 
   // Configuration des GPIO
   gpio_config_t io_conf = {
-      .pin_bit_mask = (1ULL << PIN_RST) | (1ULL << PIN_INT),
+      .pin_bit_mask = (1ULL << TOUCH_PIN_RST) | (1ULL << PIN_INT),
       .mode = GPIO_MODE_OUTPUT,
       .pull_up_en = GPIO_PULLUP_DISABLE,
       .pull_down_en = GPIO_PULLDOWN_DISABLE,
@@ -306,7 +306,7 @@ void touch_set_enable(bool enable) {
      */
     gpio_set_direction(PIN_INT, GPIO_MODE_OUTPUT);
     gpio_set_level(PIN_INT, 0);
-    gpio_set_level(PIN_RST, 1);
+    gpio_set_level(TOUCH_PIN_RST, 1);
     vTaskDelay(pdMS_TO_TICKS(50));
     gpio_set_direction(PIN_INT, GPIO_MODE_INPUT);
   } else {
@@ -319,7 +319,7 @@ void touch_set_enable(bool enable) {
      */
     gpio_set_direction(PIN_INT, GPIO_MODE_OUTPUT);
     gpio_set_level(PIN_INT, 0);
-    gpio_set_level(PIN_RST, 0);
+    gpio_set_level(TOUCH_PIN_RST, 0);
   }
 }
 
