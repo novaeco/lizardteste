@@ -31,12 +31,12 @@ static const struct {
     const char *label;
     nova_screen_t screen;
 } menu_data[SCREEN_COUNT] = {
-    {"🏠", "Accueil", SCREEN_DASHBOARD},
-    {"🦎", "Reptiles", SCREEN_REPTILES},
-    {"🏺", "Terrariums", SCREEN_TERRARIUMS},
-    {"📊", "Statistiques", SCREEN_STATISTICS},
-    {"⚠️", "Alertes", SCREEN_ALERTS},
-    {"⚙️", "Paramètres", SCREEN_SETTINGS}
+    {LV_SYMBOL_HOME, "Accueil", SCREEN_DASHBOARD},
+    {LV_SYMBOL_EYE_OPEN, "Reptiles", SCREEN_REPTILES},
+    {LV_SYMBOL_DIRECTORY, "Terrariums", SCREEN_TERRARIUMS},
+    {LV_SYMBOL_BARS, "Statistiques", SCREEN_STATISTICS},
+    {LV_SYMBOL_WARNING, "Alertes", SCREEN_ALERTS},
+    {LV_SYMBOL_SETTINGS, "Paramètres", SCREEN_SETTINGS}
 };
 
 /**

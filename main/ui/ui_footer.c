@@ -28,7 +28,7 @@ static esp_err_t create_wifi_indicator(lv_obj_t *parent)
 {
     // Icône Wi-Fi
     footer_wifi_icon = lv_label_create(parent);
-    lv_label_set_text(footer_wifi_icon, "📶");
+    lv_label_set_text(footer_wifi_icon, LV_SYMBOL_WIFI);
     lv_obj_add_style(footer_wifi_icon, ui_styles_get_text_small(), 0);
     lv_obj_set_pos(footer_wifi_icon, 10, 8);
     
@@ -49,7 +49,7 @@ static esp_err_t create_wifi_indicator(lv_obj_t *parent)
 static esp_err_t create_notifications_indicator(lv_obj_t *parent)
 {
     footer_notifications = lv_label_create(parent);
-    lv_label_set_text(footer_notifications, "🔔 2 notifications");
+    lv_label_set_text(footer_notifications, LV_SYMBOL_BELL " 2 notifications");
     lv_obj_add_style(footer_notifications, ui_styles_get_text_small(), 0);
     lv_obj_set_pos(footer_notifications, 200, 10);
     
@@ -178,16 +178,16 @@ void ui_footer_set_wifi_status(bool connected, int signal_strength)
     if (footer_wifi_icon) {
         if (connected) {
             if (signal_strength > 75) {
-                lv_label_set_text(footer_wifi_icon, "📶");
+                lv_label_set_text(footer_wifi_icon, LV_SYMBOL_WIFI);
             } else if (signal_strength > 50) {
-                lv_label_set_text(footer_wifi_icon, "📶");
+                lv_label_set_text(footer_wifi_icon, LV_SYMBOL_WIFI);
             } else if (signal_strength > 25) {
-                lv_label_set_text(footer_wifi_icon, "📶");
+                lv_label_set_text(footer_wifi_icon, LV_SYMBOL_WIFI);
             } else {
-                lv_label_set_text(footer_wifi_icon, "📶");
+                lv_label_set_text(footer_wifi_icon, LV_SYMBOL_WIFI);
             }
         } else {
-            lv_label_set_text(footer_wifi_icon, "📵");
+            lv_label_set_text(footer_wifi_icon, LV_SYMBOL_CLOSE);
         }
     }
 }
@@ -198,10 +198,10 @@ void ui_footer_set_notification_count(int count)
         char notif_text[50];
         
         if (count > 0) {
-            snprintf(notif_text, sizeof(notif_text), "🔔 %d notification%s", 
+            snprintf(notif_text, sizeof(notif_text), LV_SYMBOL_BELL " %d notification%s",
                     count, count > 1 ? "s" : "");
         } else {
-            snprintf(notif_text, sizeof(notif_text), "🔕 Aucune notification");
+            snprintf(notif_text, sizeof(notif_text), LV_SYMBOL_BELL " Aucune notification");
         }
         
         lv_label_set_text(footer_notifications, notif_text);

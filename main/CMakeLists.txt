@@ -7,6 +7,7 @@ idf_component_register(
         "ui/ui_content.c"
         "ui/ui_footer.c"
         "ui/ui_styles.c"
+        "ui/ui_icons.c"
         "drivers/display_driver.c"
         "drivers/touch_driver.c"
     INCLUDE_DIRS 

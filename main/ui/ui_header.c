@@ -6,6 +6,7 @@
 
 #include "ui_header.h"
 #include "ui_styles.h"
+#include "ui_icons.h"
 #include "esp_log.h"
 
 static const char *TAG = "UI_Header";
@@ -70,10 +71,10 @@ static void settings_btn_event_cb(lv_event_t *e)
 static lv_obj_t* create_logo(lv_obj_t *parent)
 {
     lv_obj_t *logo = lv_label_create(parent);
-    lv_label_set_text(logo, "🦎"); // Icône emoji temporaire
+    lv_label_set_text(logo, LV_SYMBOL_IMAGE);
     lv_obj_add_style(logo, ui_styles_get_text_title(), 0);
     lv_obj_set_pos(logo, 10, 10);
-    
+
     return logo;
 }
 
@@ -134,13 +135,13 @@ static lv_obj_t* create_profile_button(lv_obj_t *parent)
     lv_obj_set_size(btn, 40, 40);
     lv_obj_set_pos(btn, 720, 10);
     lv_obj_add_style(btn, ui_styles_get_button_secondary(), 0);
-    
-    lv_obj_t *label = lv_label_create(btn);
-    lv_label_set_text(label, "👤"); // Icône profil temporaire
-    lv_obj_center(label);
-    
+
+    lv_obj_t *img = lv_img_create(btn);
+    lv_img_set_src(img, &ui_img_profile);
+    lv_obj_center(img);
+
     lv_obj_add_event_cb(btn, profile_btn_event_cb, LV_EVENT_CLICKED, NULL);
-    
+
     return btn;
 }
 
@@ -155,13 +156,13 @@ static lv_obj_t* create_settings_button(lv_obj_t *parent)
     lv_obj_set_size(btn, 40, 40);
     lv_obj_set_pos(btn, 770, 10);
     lv_obj_add_style(btn, ui_styles_get_button_primary(), 0);
-    
+
     lv_obj_t *label = lv_label_create(btn);
-    lv_label_set_text(label, "⚙️"); // Icône paramètres temporaire
+    lv_label_set_text(label, LV_SYMBOL_SETTINGS);
     lv_obj_center(label);
-    
+
     lv_obj_add_event_cb(btn, settings_btn_event_cb, LV_EVENT_CLICKED, NULL);
-    
+
     return btn;
 }
 
