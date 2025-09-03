@@ -39,6 +39,18 @@ void ui_header_set_connection_status(bool connected);
  */
 void ui_header_set_time(const char *time_str);
 
+/**
+ * @brief Ouvre le menu profil
+ * @return esp_err_t Code d'erreur
+ */
+esp_err_t ui_header_open_profile_menu(void);
+
+/**
+ * @brief Ouvre le panneau de réglages rapides
+ * @return esp_err_t Code d'erreur
+ */
+esp_err_t ui_header_open_quick_settings(void);
+
 #ifdef __cplusplus
 }
 #endif
