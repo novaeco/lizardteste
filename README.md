@@ -125,6 +125,23 @@ Le fichier `components/lvgl/lv_conf.h` est configuré pour:
 - Polices Montserrat (12-28px)
 - Support flex/grid layouts
 
+## 🔄 Mises à jour OTA
+
+Le projet prend en charge les mises à jour **OTA (Over-The-Air)** grâce à deux partitions OTA de 3 Mio chacune (`ota_0` et `ota_1`). Lorsqu'une nouvelle image est téléchargée, elle est stockée dans la partition inactive puis activée lors du redémarrage.
+
+La table de partitions (`partitions.csv`) a été mise à jour en conséquence et la partition SPIFFS réduite à 1 Mio pour libérer l'espace requis.
+
+Exemple minimal d'utilisation de l'API OTA d'ESP-IDF :
+
+```c
+esp_http_client_config_t config = {
+    .url = "https://example.com/firmware.bin",
+};
+if (esp_https_ota(&config) == ESP_OK) {
+    esp_restart();
+}
+```
+
 ## 📱 Fonctionnalités de l'interface
 
 ### Composants réutilisables
