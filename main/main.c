@@ -16,6 +16,7 @@
 #include "esp_err.h"
 #include "nvs_flash.h"
 #include "esp_random.h"
+#include "esp_timer.h"
 
 #include "lvgl.h"
 #include "ui_main.h"
@@ -23,6 +24,20 @@
 #include "touch_driver.h"
 
 static const char *TAG = "NovaReptile_Main";
+
+/**
+ * @brief Callback du timer haute résolution pour LVGL
+ *
+ * Incrémente le tick LVGL toutes les 1 ms afin d'assurer une gestion
+ * temporelle précise des timers internes de la bibliothèque.
+ */
+static void lv_tick_cb(void *arg)
+{
+    lv_tick_inc(1);
+}
+
+/** Handle du timer haute résolution LVGL */
+static esp_timer_handle_t lvgl_tick_timer;
 
 /**
  * @brief Tâche principale LVGL - Gestion des timers et événements
@@ -92,13 +107,21 @@ void app_main(void)
 {
     ESP_LOGI(TAG, "=== NovaReptileElevage v1.0 ===");
     ESP_LOGI(TAG, "ESP32-S3 Touch LCD 7\" (800x480)");
-    ESP_LOGI(TAG, "LVGL %d.%d.%d + ESP-IDF %s", 
+    ESP_LOGI(TAG, "LVGL %d.%d.%d + ESP-IDF %s",
              lv_version_major(), lv_version_minor(), lv_version_patch(),
              esp_get_idf_version());
-    
+
     // Initialisation du système
     ESP_ERROR_CHECK(nova_reptile_init());
-    
+
+    // Initialisation du timer haute résolution LVGL (1 ms)
+    const esp_timer_create_args_t lvgl_tick_timer_args = {
+        .callback = &lv_tick_cb,
+        .name = "lvgl_tick"
+    };
+    ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, 1000));
+
     // Création de la tâche LVGL (priorité élevée pour la fluidité)
     xTaskCreatePinnedToCore(
         lvgl_task,              // Fonction de la tâche
