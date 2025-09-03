@@ -18,6 +18,8 @@ static lv_obj_t *header_connection_indicator;
 static lv_obj_t *header_time;
 static lv_obj_t *header_profile_btn;
 static lv_obj_t *header_settings_btn;
+static lv_obj_t *profile_menu;
+static lv_obj_t *quick_settings_panel;
 
 static lv_style_t style_connected;
 static lv_style_t style_disconnected;
@@ -44,9 +46,13 @@ static void init_header_styles(void)
 static void profile_btn_event_cb(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
+    ESP_LOGD(TAG, "profile_btn_event_cb code=%d", code);
     if (code == LV_EVENT_CLICKED) {
         ESP_LOGI(TAG, "Bouton profil cliqué");
-        // TODO: Ouvrir menu profil
+        esp_err_t ret = ui_header_open_profile_menu();
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "Ouverture menu profil échouée: %s", esp_err_to_name(ret));
+        }
     }
 }
 
@@ -57,10 +63,77 @@ static void profile_btn_event_cb(lv_event_t *e)
 static void settings_btn_event_cb(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
+    ESP_LOGD(TAG, "settings_btn_event_cb code=%d", code);
     if (code == LV_EVENT_CLICKED) {
         ESP_LOGI(TAG, "Bouton paramètres cliqué");
-        // TODO: Ouvrir paramètres rapides
+        esp_err_t ret = ui_header_open_quick_settings();
+        if (ret != ESP_OK) {
+            ESP_LOGE(TAG, "Ouverture réglages rapides échouée: %s", esp_err_to_name(ret));
+        }
     }
+}
+
+/**
+ * @brief Callback commun pour la fermeture des boîtes de dialogue
+ * @param e Événement LVGL
+ */
+static void msgbox_event_cb(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    lv_obj_t *obj = lv_event_get_target(e);
+    ESP_LOGD(TAG, "msgbox_event_cb code=%d", code);
+    if (code == LV_EVENT_VALUE_CHANGED) {
+        const char *btn_txt = lv_msgbox_get_active_btn_text(obj);
+        ESP_LOGI(TAG, "Bouton message box: %s", btn_txt);
+        lv_obj_del_async(obj);
+        if (obj == profile_menu) {
+            profile_menu = NULL;
+            ESP_LOGI(TAG, "Menu profil fermé");
+        } else if (obj == quick_settings_panel) {
+            quick_settings_panel = NULL;
+            ESP_LOGI(TAG, "Panneau réglages rapides fermé");
+        }
+    }
+}
+
+esp_err_t ui_header_open_profile_menu(void)
+{
+    if (profile_menu) {
+        ESP_LOGW(TAG, "Menu profil déjà ouvert");
+        return ESP_ERR_INVALID_STATE;
+    }
+
+    static const char *btns[] = {"Fermer", ""};
+    profile_menu = lv_msgbox_create(lv_scr_act(), "Profil", "Menu profil", btns, false);
+    if (!profile_menu) {
+        ESP_LOGE(TAG, "Création menu profil échouée");
+        return ESP_ERR_NO_MEM;
+    }
+
+    lv_obj_center(profile_menu);
+    lv_obj_add_event_cb(profile_menu, msgbox_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    ESP_LOGI(TAG, "Menu profil ouvert");
+    return ESP_OK;
+}
+
+esp_err_t ui_header_open_quick_settings(void)
+{
+    if (quick_settings_panel) {
+        ESP_LOGW(TAG, "Panneau réglages rapides déjà ouvert");
+        return ESP_ERR_INVALID_STATE;
+    }
+
+    static const char *btns[] = {"Fermer", ""};
+    quick_settings_panel = lv_msgbox_create(lv_scr_act(), "Réglages rapides", "Panneau en développement", btns, false);
+    if (!quick_settings_panel) {
+        ESP_LOGE(TAG, "Création panneau réglages rapides échouée");
+        return ESP_ERR_NO_MEM;
+    }
+
+    lv_obj_center(quick_settings_panel);
+    lv_obj_add_event_cb(quick_settings_panel, msgbox_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    ESP_LOGI(TAG, "Panneau réglages rapides ouvert");
+    return ESP_OK;
 }
 
 /**
@@ -223,5 +296,6 @@ void ui_header_set_time(const char *time_str)
 {
     if (header_time && time_str) {
         lv_label_set_text(header_time, time_str);
+        ESP_LOGI(TAG, "Heure mise à jour: %s", time_str);
     }
 }
