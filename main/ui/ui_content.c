@@ -249,14 +249,7 @@ static lv_obj_t* create_terrariums_screen(lv_obj_t *parent)
         lv_obj_t *status_indicator = lv_obj_create(terrarium_card);
         lv_obj_set_size(status_indicator, 60, 25);
         lv_obj_set_pos(status_indicator, 210, 35);
-        
-        static lv_style_t status_style;
-        lv_style_init(&status_style);
-        lv_style_set_bg_color(&status_style, COLOR_ACCENT_GREEN);
-        lv_style_set_bg_opa(&status_style, LV_OPA_COVER);
-        lv_style_set_radius(&status_style, 12);
-        lv_style_set_border_width(&status_style, 0);
-        lv_obj_add_style(status_indicator, &status_style, 0);
+        lv_obj_add_style(status_indicator, ui_styles_get_status_ok(), 0);
         
         lv_obj_t *status_text = lv_label_create(status_indicator);
         lv_label_set_text(status_text, "OK");
@@ -336,12 +329,6 @@ static lv_obj_t* create_alerts_screen(lv_obj_t *parent)
         {"INFO", "Maintenance programmée demain", "Nettoyage système filtration"}
     };
     
-    lv_color_t alert_colors[] = {
-        COLOR_ACCENT_ORANGE,
-        COLOR_ACCENT_ORANGE, 
-        COLOR_ACCENT_BLUE
-    };
-    
     for (int i = 0; i < 3; i++) {
         lv_obj_t *alert_card = lv_obj_create(screen);
         lv_obj_remove_style_all(alert_card);
@@ -354,13 +341,17 @@ static lv_obj_t* create_alerts_screen(lv_obj_t *parent)
         lv_obj_set_size(level_indicator, 6, 60);
         lv_obj_set_pos(level_indicator, 8, 10);
         
-        static lv_style_t level_style;
-        lv_style_init(&level_style);
-        lv_style_set_bg_color(&level_style, alert_colors[i]);
-        lv_style_set_bg_opa(&level_style, LV_OPA_COVER);
-        lv_style_set_radius(&level_style, 3);
-        lv_style_set_border_width(&level_style, 0);
-        lv_obj_add_style(level_indicator, &level_style, 0);
+        switch (i) {
+            case 0:
+                lv_obj_add_style(level_indicator, ui_styles_get_alert_level_critical(), 0);
+                break;
+            case 1:
+                lv_obj_add_style(level_indicator, ui_styles_get_alert_level_warning(), 0);
+                break;
+            default:
+                lv_obj_add_style(level_indicator, ui_styles_get_alert_level_info(), 0);
+                break;
+        }
         
         // Niveau d'alerte
         lv_obj_t *level_label = lv_label_create(alert_card);

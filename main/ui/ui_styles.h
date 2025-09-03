@@ -67,6 +67,13 @@ lv_style_t* ui_styles_get_nav_item_normal(void);
 lv_style_t* ui_styles_get_nav_item_active(void);
 lv_style_t* ui_styles_get_nav_item_hover(void);
 
+// Getters pour les styles d'indicateurs
+lv_style_t* ui_styles_get_nav_indicator(void);
+lv_style_t* ui_styles_get_status_ok(void);
+lv_style_t* ui_styles_get_alert_level_critical(void);
+lv_style_t* ui_styles_get_alert_level_warning(void);
+lv_style_t* ui_styles_get_alert_level_info(void);
+
 #ifdef __cplusplus
 }
 #endif

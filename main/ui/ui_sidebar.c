@@ -111,14 +111,7 @@ static esp_err_t create_menu_item(lv_obj_t *parent, int index, int y_pos)
     lv_obj_set_size(item->indicator, 8, 8);
     lv_obj_set_pos(item->indicator, SIDEBAR_WIDTH - 40, 21);
     lv_obj_add_flag(item->indicator, LV_OBJ_FLAG_HIDDEN); // Caché par défaut
-    
-    static lv_style_t indicator_style;
-    lv_style_init(&indicator_style);
-    lv_style_set_bg_color(&indicator_style, COLOR_ACCENT_ORANGE);
-    lv_style_set_bg_opa(&indicator_style, LV_OPA_COVER);
-    lv_style_set_radius(&indicator_style, 4);
-    lv_style_set_border_width(&indicator_style, 0);
-    lv_obj_add_style(item->indicator, &indicator_style, 0);
+    lv_obj_add_style(item->indicator, ui_styles_get_nav_indicator(), 0);
     
     // Configuration de l'élément
     item->screen_type = menu_data[index].screen;
