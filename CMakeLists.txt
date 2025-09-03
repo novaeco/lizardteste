@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.5)
 set(PROJECT_NAME "nova_reptile_elevage")
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+idf_build_set_property(SDKCONFIG_DEFAULTS "sdkconfig.defaults")
 project(${PROJECT_NAME})
 
 if(NOT DEFINED ENV{IDF_TARGET})

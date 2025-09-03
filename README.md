@@ -113,9 +113,13 @@ idf.py set-target esp32s3
 idf.py menuconfig
 
 # Compilation et flash
+./scripts/build_flash.sh /dev/ttyUSB0
+# ou manuellement
 idf.py build
-idf.py -p /dev/ttyUSB0 flash monitor
+idf.py -p /dev/ttyUSB0 flash
 ```
+
+> **Note:** après toute modification de configuration, exécuter `idf.py defconfig` afin de régénérer `sdkconfig` à partir de `sdkconfig.defaults`.
 
 ### Configuration LVGL
 Le fichier `components/lvgl/lv_conf.h` est configuré pour:
