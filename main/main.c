@@ -123,7 +123,8 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, 1000));
 
     // Création de la tâche LVGL (priorité élevée pour la fluidité)
-    xTaskCreatePinnedToCore(
+    // Si la création échoue, l'erreur est journalisée et le système redémarre
+    BaseType_t task_ret = xTaskCreatePinnedToCore(
         lvgl_task,              // Fonction de la tâche
         "LVGL_Task",            // Nom de la tâche
         8192,                   // Taille de la pile (8KB)
@@ -132,6 +133,11 @@ void app_main(void)
         NULL,                   // Handle de la tâche
         1                       // Core 1 (Core 0 pour WiFi/BT)
     );
+
+    if (task_ret != pdPASS) {
+        ESP_LOGE(TAG, "Échec création tâche LVGL: %ld", task_ret);
+        esp_restart();
+    }
     
     ESP_LOGI(TAG, "Application démarrée - Interface prête");
 }
