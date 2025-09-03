@@ -79,21 +79,14 @@ static void settings_btn_event_cb(lv_event_t *e)
  */
 static void msgbox_event_cb(lv_event_t *e)
 {
-    lv_event_code_t code = lv_event_get_code(e);
-    lv_obj_t *obj = lv_event_get_target(e);
-    ESP_LOGD(TAG, "msgbox_event_cb code=%d", code);
-    if (code == LV_EVENT_VALUE_CHANGED) {
-        const char *btn_txt = lv_msgbox_get_active_button_text(obj);
-        ESP_LOGI(TAG, "Bouton message box: %s", btn_txt);
-        lv_obj_del_async(obj);
-        if (obj == profile_menu) {
-            profile_menu = NULL;
-            ESP_LOGI(TAG, "Menu profil fermé");
-        } else if (obj == quick_settings_panel) {
-            quick_settings_panel = NULL;
-            ESP_LOGI(TAG, "Panneau réglages rapides fermé");
-        }
-    }
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    lv_obj_t *btn = lv_event_get_target(e);
+    const char *txt = lv_label_get_text(lv_obj_get_child(btn, 0));
+    lv_obj_t *box = lv_obj_get_parent(btn);
+    ESP_LOGI(TAG, "Bouton message box: %s", txt);
+    lv_obj_del_async(box);
+    if (box == profile_menu) profile_menu = NULL;
+    else if (box == quick_settings_panel) quick_settings_panel = NULL;
 }
 
 esp_err_t ui_header_open_profile_menu(void)
@@ -114,7 +107,7 @@ esp_err_t ui_header_open_profile_menu(void)
     lv_msgbox_add_text(profile_menu, "Menu profil");
     lv_msgbox_add_footer_buttons(profile_menu, btns, 0);
     lv_obj_center(profile_menu);
-    lv_obj_add_event_cb(profile_menu, msgbox_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(profile_menu, msgbox_event_cb, LV_EVENT_CLICKED, NULL);
     ESP_LOGI(TAG, "Menu profil ouvert");
     return ESP_OK;
 }
@@ -137,7 +130,7 @@ esp_err_t ui_header_open_quick_settings(void)
     lv_msgbox_add_text(quick_settings_panel, "Panneau en développement");
     lv_msgbox_add_footer_buttons(quick_settings_panel, btns, 0);
     lv_obj_center(quick_settings_panel);
-    lv_obj_add_event_cb(quick_settings_panel, msgbox_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(quick_settings_panel, msgbox_event_cb, LV_EVENT_CLICKED, NULL);
     ESP_LOGI(TAG, "Panneau réglages rapides ouvert");
     return ESP_OK;
 }
