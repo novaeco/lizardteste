@@ -41,11 +41,6 @@ typedef struct {
 
 static bool touch_initialized = false;
 
-// Préparation pour une gestion interruptive future
-static void IRAM_ATTR touch_isr_handler(void *arg) {
-  // TODO: implémenter la gestion de l'interruption tactile
-}
-
 /**
  * @brief Lit des données depuis le GT911 via I2C
  * @param reg_addr Adresse du registre
@@ -142,7 +137,6 @@ static void touch_read(lv_indev_t *indev, lv_indev_data_t *data) {
   static uint8_t total_points = 0;
   static uint8_t point_index = 0;
   static uint16_t last_x = 0, last_y = 0;
-  static bool touch_pressed = false;
 
   if (point_index >= total_points) {
     // Lecture du statut tactile
@@ -182,7 +176,6 @@ static void touch_read(lv_indev_t *indev, lv_indev_data_t *data) {
         }
         total_points = point_count;
         point_index = 0;
-        touch_pressed = true;
         last_x = points[0].x;
         last_y = points[0].y;
 
@@ -192,8 +185,6 @@ static void touch_read(lv_indev_t *indev, lv_indev_data_t *data) {
       // Effacement du statut pour préparer la prochaine lecture
       uint8_t clear = 0;
       gt911_write_reg(GT911_REG_STATUS, &clear, 1);
-    } else {
-      touch_pressed = false;
     }
   }
 
