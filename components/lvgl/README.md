@@ -22,7 +22,8 @@ Pour installer LVGL dans ce composant :
 
 ## Configuration
 
-Le fichier `lv_conf.h` se trouve dans `main/lv_conf.h` et est configuré pour :
+Le fichier `lv_conf.h` se trouve dans `components/lvgl/lv_conf.h` et est configuré pour :
+Grâce à la définition `LV_CONF_INCLUDE_SIMPLE`, ce fichier unique est accessible aux sources du composant et de l'application.
 - Écran 800x480 16-bit (RGB565)
 - Tactile GT911
 - Widgets essentiels activés
