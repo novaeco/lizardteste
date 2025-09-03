@@ -51,7 +51,7 @@ static void st7262_send_cmd(uint8_t cmd)
     t.user = (void*)0; // D/C = 0 pour commande
     
     ret = spi_device_polling_transmit(spi_handle, &t);
-    assert(ret == ESP_OK);
+    ESP_ERROR_CHECK(ret);
 }
 
 /**
@@ -72,7 +72,7 @@ static void st7262_send_data(const uint8_t *data, int len)
     t.user = (void*)1; // D/C = 1 pour données
     
     ret = spi_device_polling_transmit(spi_handle, &t);
-    assert(ret == ESP_OK);
+    ESP_ERROR_CHECK(ret);
 }
 
 /**
