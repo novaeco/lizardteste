@@ -9,6 +9,7 @@
 
 #include "esp_err.h"
 #include "lvgl.h"
+#include "esp_heap_caps.h"
 
 #ifdef __cplusplus
 extern "C" {
