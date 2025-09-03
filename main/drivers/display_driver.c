@@ -213,7 +213,11 @@ esp_err_t display_driver_init(void)
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .intr_type = GPIO_INTR_DISABLE,
     };
-    gpio_config(&io_conf);
+    ret = gpio_config(&io_conf);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Erreur configuration GPIO");
+        goto fail;
+    }
     
     // Configuration SPI
     spi_bus_config_t buscfg = {
@@ -228,7 +232,7 @@ esp_err_t display_driver_init(void)
     ret = spi_bus_initialize(DISPLAY_SPI_HOST, &buscfg, SPI_DMA_CHAN);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur initialisation bus SPI");
-        return ret;
+        goto fail;
     }
     
     spi_device_interface_config_t devcfg = {
@@ -242,7 +246,7 @@ esp_err_t display_driver_init(void)
     ret = spi_bus_add_device(DISPLAY_SPI_HOST, &devcfg, &spi_handle);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur ajout device SPI");
-        return ret;
+        goto fail;
     }
     
     // Initialisation du contrôleur ST7262
@@ -252,7 +256,7 @@ esp_err_t display_driver_init(void)
     ret = init_backlight();
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur initialisation rétroéclairage");
-        return ret;
+        goto fail;
     }
     
     // Allocation des buffers LVGL
@@ -261,22 +265,41 @@ esp_err_t display_driver_init(void)
     
     if (!buf1 || !buf2) {
         ESP_LOGE(TAG, "Erreur allocation buffers LVGL");
-        return ESP_ERR_NO_MEM;
+        ret = ESP_ERR_NO_MEM;
+        goto fail;
     }
     
     // Configuration LVGL
     display = lv_display_create(DISPLAY_WIDTH, DISPLAY_HEIGHT);
     if (!display) {
         ESP_LOGE(TAG, "Erreur création display LVGL");
-        return ESP_FAIL;
+        ret = ESP_FAIL;
+        goto fail;
     }
     
     lv_display_set_flush_cb(display, display_flush);
     lv_display_set_buffers(display, buf1, buf2, DISPLAY_BUF_SIZE * sizeof(lv_color_t), LV_DISPLAY_RENDER_MODE_PARTIAL);
-    
-    
+
+
     ESP_LOGI(TAG, "Driver d'affichage ST7262 initialisé avec succès");
     return ESP_OK;
+
+fail:
+    if (buf1) {
+        free(buf1);
+        buf1 = NULL;
+    }
+    if (buf2) {
+        free(buf2);
+        buf2 = NULL;
+    }
+    if (spi_handle) {
+        spi_bus_remove_device(spi_handle);
+        spi_handle = NULL;
+    }
+    spi_bus_free(DISPLAY_SPI_HOST);
+    ESP_LOGE(TAG, "Initialisation du driver d'affichage échouée");
+    return ret;
 }
 
 void display_driver_deinit(void)
