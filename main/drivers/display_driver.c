@@ -22,7 +22,7 @@ static const char *TAG = "Display_Driver";
 #define PIN_CLK         12
 #define PIN_CS          10
 #define PIN_DC          14
-#define PIN_RST         21
+#define DISPLAY_PIN_RST 21
 #define PIN_BCKL        2
 
 // Configuration SPI
@@ -93,9 +93,9 @@ static void st7262_init(void)
     ESP_LOGI(TAG, "Initialisation du contrôleur ST7262");
     
     // Reset du contrôleur
-    gpio_set_level(PIN_RST, 0);
+    gpio_set_level(DISPLAY_PIN_RST, 0);
     vTaskDelay(pdMS_TO_TICKS(100));
-    gpio_set_level(PIN_RST, 1);
+    gpio_set_level(DISPLAY_PIN_RST, 1);
     vTaskDelay(pdMS_TO_TICKS(100));
     
     // Séquence d'initialisation ST7262
@@ -207,7 +207,7 @@ esp_err_t display_driver_init(void)
     
     // Configuration des GPIO
     gpio_config_t io_conf = {
-        .pin_bit_mask = (1ULL << PIN_DC) | (1ULL << PIN_RST),
+        .pin_bit_mask = (1ULL << PIN_DC) | (1ULL << DISPLAY_PIN_RST),
         .mode = GPIO_MODE_OUTPUT,
         .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
