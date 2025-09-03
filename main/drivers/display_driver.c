@@ -302,8 +302,25 @@ fail:
     return ret;
 }
 
+
+/**
+ * @brief Désinitialise le driver d'affichage ST7262.
+ * Séquence de désinitialisation :
+ * 1. Suppression de l'affichage LVGL.
+ * 2. Arrêt du PWM et réinitialisation du timer.
+ * 3. Libération des buffers d'affichage.
+ * 4. Libération du bus SPI.
+ */
 void display_driver_deinit(void)
 {
+    if (display) {
+        lv_display_delete(display);
+        display = NULL;
+    }
+
+    ledc_stop(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, 0);
+    ledc_timer_rst(LEDC_LOW_SPEED_MODE, LEDC_TIMER_0);
+
     if (buf1) {
         free(buf1);
         buf1 = NULL;
@@ -312,12 +329,13 @@ void display_driver_deinit(void)
         free(buf2);
         buf2 = NULL;
     }
-    
+
     spi_bus_remove_device(spi_handle);
     spi_bus_free(DISPLAY_SPI_HOST);
-    
+
     ESP_LOGI(TAG, "Driver d'affichage désactivé");
 }
+
 
 void display_set_brightness(uint8_t brightness)
 {
