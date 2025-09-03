@@ -96,7 +96,6 @@ esp_err_t ui_header_open_profile_menu(void)
         return ESP_ERR_INVALID_STATE;
     }
 
-    static const char *btns[] = {"Fermer", ""};
     profile_menu = lv_msgbox_create(lv_scr_act());
     if (!profile_menu) {
         ESP_LOGE(TAG, "Création menu profil échouée");
@@ -105,9 +104,9 @@ esp_err_t ui_header_open_profile_menu(void)
 
     lv_msgbox_add_title(profile_menu, "Profil");
     lv_msgbox_add_text(profile_menu, "Menu profil");
-    lv_msgbox_add_footer_buttons(profile_menu, btns, 0);
+    lv_obj_t *btn = lv_msgbox_add_footer_button(profile_menu, "Fermer");
+    lv_obj_add_event_cb(btn, msgbox_event_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_center(profile_menu);
-    lv_obj_add_event_cb(profile_menu, msgbox_event_cb, LV_EVENT_CLICKED, NULL);
     ESP_LOGI(TAG, "Menu profil ouvert");
     return ESP_OK;
 }
@@ -119,7 +118,6 @@ esp_err_t ui_header_open_quick_settings(void)
         return ESP_ERR_INVALID_STATE;
     }
 
-    static const char *btns[] = {"Fermer", ""};
     quick_settings_panel = lv_msgbox_create(lv_scr_act());
     if (!quick_settings_panel) {
         ESP_LOGE(TAG, "Création panneau réglages rapides échouée");
@@ -128,9 +126,9 @@ esp_err_t ui_header_open_quick_settings(void)
 
     lv_msgbox_add_title(quick_settings_panel, "Réglages rapides");
     lv_msgbox_add_text(quick_settings_panel, "Panneau en développement");
-    lv_msgbox_add_footer_buttons(quick_settings_panel, btns, 0);
+    lv_obj_t *btn = lv_msgbox_add_footer_button(quick_settings_panel, "Fermer");
+    lv_obj_add_event_cb(btn, msgbox_event_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_center(quick_settings_panel);
-    lv_obj_add_event_cb(quick_settings_panel, msgbox_event_cb, LV_EVENT_CLICKED, NULL);
     ESP_LOGI(TAG, "Panneau réglages rapides ouvert");
     return ESP_OK;
 }
