@@ -125,6 +125,20 @@ ESP_LOGE(TAG, "Aucune PSRAM détectée - initialisation annulée");
 
 Dans ce cas, `nova_reptile_init()` renvoie `ESP_ERR_NO_MEM` avant toute configuration de LVGL. Activez la PSRAM dans `menuconfig` (**Component config → ESP PSRAM**) ou utilisez une carte dotée de SPIRAM pour exécuter l'application.
 
+#### Dépannage PSRAM
+
+- **Symptôme** : `PSRAM ID read error: 0x00ffffff`
+- **Vérifications** :
+  - Tension d'alimentation correcte
+  - Configuration du mode ligne (1/2/4/8)
+  - Straps GPIO0/GPIO46
+  - Option `CONFIG_ESP32S3_SPIRAM_MODE_OCT` activée
+- **Commandes de test** :
+  ```bash
+  idf.py monitor
+  esp_idf_psram_test
+  ```
+
 ### Étapes de compilation
 ```bash
 # Clonage du projet
