@@ -1,8 +1,59 @@
 #!/bin/bash
 set -e
+
+usage() {
+  echo "Usage: $0 <PORT> [--baud <BAUD>] [--erase]"
+}
+
 if [ -z "$1" ]; then
-  echo "Usage: $0 <PORT>"
+  usage
   exit 1
 fi
+
+PORT="$1"
+shift
+
+BAUD=""
+ERASE=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --baud)
+      if [[ -n "$2" && "$2" != --* ]]; then
+        BAUD="$2"
+        shift 2
+      else
+        echo "Error: --baud requires an argument"
+        usage
+        exit 1
+      fi
+      ;;
+    --erase)
+      ERASE=1
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1"
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+if [ ! -f sdkconfig ] || ! grep -q '^CONFIG_SPIRAM=y' sdkconfig; then
+  echo "Erreur: PSRAM non activée dans sdkconfig (CONFIG_SPIRAM)."
+  exit 1
+fi
+
 idf.py build
-idf.py -p "$1" flash
+
+FLASH_ARGS=(-p "$PORT")
+if [ -n "$BAUD" ]; then
+  FLASH_ARGS+=(-b "$BAUD")
+fi
+
+if [ "$ERASE" -eq 1 ]; then
+  idf.py "${FLASH_ARGS[@]}" erase_flash
+fi
+
+idf.py "${FLASH_ARGS[@]}" flash

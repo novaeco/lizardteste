@@ -126,7 +126,9 @@ idf.py set-target esp32s3
 idf.py menuconfig
 
 # Compilation et flash
-./scripts/build_flash.sh /dev/ttyUSB0
+./scripts/build_flash.sh /dev/ttyUSB0 [--baud 921600] [--erase]
+# --baud : définit la vitesse de flash
+# --erase : efface la mémoire flash avant programmation
 # ou manuellement
 idf.py build
 idf.py -p /dev/ttyUSB0 flash
