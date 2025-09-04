@@ -31,8 +31,8 @@ static const int lcd_data_gpios[16] = {
 // SPI interface for ST7262 command configuration
 #define LCD_CMD_SPI_HOST SPI2_HOST
 #define LCD_CMD_SCLK_GPIO  6
-#define LCD_CMD_MOSI_GPIO  7
-#define LCD_CMD_CS_GPIO    5
+#define LCD_CMD_MOSI_GPIO  11
+#define LCD_CMD_CS_GPIO    12
 #define LCD_CMD_DC_GPIO    4
 
 typedef struct {

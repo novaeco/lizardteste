@@ -75,13 +75,13 @@ Le fichier `lv_conf.h` est placé dans `components/lvgl/` et, grâce à la défi
 ### Broches ESP32-S3 (Waveshare 7")
 ```c
 // Affichage ST7262
-#define PIN_MOSI    11
-#define PIN_MISO    13
-#define PIN_CLK     12
-#define PIN_CS      10
-#define PIN_DC      14
+#define PIN_MOSI       11
+#define PIN_MISO       -1   // non utilisé
+#define PIN_CLK        6
+#define PIN_CS         12
+#define PIN_DC         4
 #define DISPLAY_PIN_RST 21
-#define PIN_BCKL    2
+#define PIN_BCKL       2
 
 // Tactile GT911
 #define PIN_SDA     8
@@ -89,6 +89,8 @@ Le fichier `lv_conf.h` est placé dans `components/lvgl/` et, grâce à la défi
 #define PIN_INT     18
 #define TOUCH_PIN_RST 17
 ```
+
+Les broches MOSI et CS ont été déplacées respectivement sur GPIO11 et GPIO12 afin d'éliminer tout conflit avec les signaux RGB (PCLK en GPIO7 et DE en GPIO5).
 
 ### Paramètres SPI/I2C
 - **SPI**: 40MHz, Mode 0, DMA activé
