@@ -78,7 +78,7 @@ static esp_err_t nova_reptile_init(void)
         return ret;
     }
 
-    size_t psram_size = esp_psram_get_chip_size();
+    size_t psram_size = esp_psram_get_size();
     if (psram_size == 0) {
         ESP_LOGE(TAG, "Aucune PSRAM détectée - initialisation annulée");
         return ESP_ERR_NO_MEM;
