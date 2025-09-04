@@ -17,6 +17,7 @@
 #include "nvs_flash.h"
 #include "esp_random.h"
 #include "esp_timer.h"
+#include "esp_psram.h"
 
 #include "lvgl.h"
 #include "ui_main.h"
@@ -69,9 +70,22 @@ static esp_err_t nova_reptile_init(void)
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK(ret);
-    
+
+    // Initialisation et vérification de la PSRAM
+    ret = esp_psram_init();
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Erreur initialisation PSRAM: %s", esp_err_to_name(ret));
+        return ret;
+    }
+
+    size_t psram_size = esp_psram_get_chip_size();
+    if (psram_size == 0) {
+        ESP_LOGE(TAG, "Aucune PSRAM détectée - initialisation annulée");
+        return ESP_ERR_NO_MEM;
+    }
+
     // Initialisation de LVGL
-    ESP_LOGI(TAG, "Initialisation LVGL v%d.%d.%d", 
+    ESP_LOGI(TAG, "Initialisation LVGL v%d.%d.%d",
              lv_version_major(), lv_version_minor(), lv_version_patch());
     lv_init();
     

@@ -115,6 +115,16 @@ Les broches MOSI et CS ont été déplacées respectivement sur GPIO11 et GPIO12
 - PSRAM activée (support SPIRAM obligatoire pour le frame buffer)
 - Carte Waveshare ESP32-S3 Touch LCD 7"
 
+#### Démarrage sans PSRAM
+
+Lors de l'initialisation, le firmware vérifie la présence de la PSRAM via `esp_psram_init()` puis `esp_psram_get_chip_size()`. Si aucune PSRAM n'est détectée (taille nulle), l'initialisation est interrompue et l'erreur suivante est journalisée :
+
+```
+ESP_LOGE(TAG, "Aucune PSRAM détectée - initialisation annulée");
+```
+
+Dans ce cas, `nova_reptile_init()` renvoie `ESP_ERR_NO_MEM` avant toute configuration de LVGL. Activez la PSRAM dans `menuconfig` (**Component config → ESP PSRAM**) ou utilisez une carte dotée de SPIRAM pour exécuter l'application.
+
 ### Étapes de compilation
 ```bash
 # Clonage du projet
