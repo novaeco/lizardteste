@@ -13,10 +13,10 @@
 #define LCD_V_RES 480
 #define LCD_PIXEL_CLOCK_HZ (10 * 1000 * 1000)
 
-#define LCD_HSYNC_GPIO 39
-#define LCD_VSYNC_GPIO 41
-#define LCD_DE_GPIO 40
-#define LCD_PCLK_GPIO 42
+#define LCD_HSYNC_GPIO 46
+#define LCD_VSYNC_GPIO 3
+#define LCD_DE_GPIO 5
+#define LCD_PCLK_GPIO 7
 
 static const int lcd_data_gpios[16] = {45, 48, 47, 21, 14, 13, 12, 11,
                                        10, 9,  46, 3,  8,  18, 17, 16};
