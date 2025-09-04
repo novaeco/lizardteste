@@ -18,8 +18,9 @@ static const char *TAG = "Touch_Driver";
 // Configuration des broches I2C (Waveshare ESP32-S3 Touch LCD 7")
 #define PIN_SDA 8
 #define PIN_SCL 9
-#define PIN_INT 18
-#define TOUCH_PIN_RST 17
+// Affectation de broches libres hors bus LCD pour l'interface tactile
+#define PIN_INT 15        // Broche d'interruption GT911
+#define TOUCH_PIN_RST 16  // Broche de reset GT911
 
 // Configuration I2C
 #define I2C_PORT I2C_NUM_0
