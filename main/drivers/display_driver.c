@@ -80,6 +80,7 @@ esp_err_t display_driver_init(void)
         return ESP_ERR_NO_MEM;
     }
     display = lv_display_create(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+    lv_display_set_default(display);
     lv_display_set_flush_cb(display, display_flush_cb);
     lv_display_set_buffers(display, buf1, buf2,
                            DISPLAY_BUF_SIZE * sizeof(lv_color_t),
