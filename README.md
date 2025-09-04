@@ -1,13 +1,13 @@
 # NovaReptileElevage - Interface LVGL ESP32-S3
 
-Interface utilisateur complète pour système d'élevage de reptiles utilisant LVGL 9.2.2 sur ESP32-S3 avec écran tactile 7 pouces.
+Interface utilisateur complète pour système d'élevage de reptiles utilisant LVGL 9.4.0 sur ESP32-S3 avec écran tactile 7 pouces.
 
 ## 🦎 Caractéristiques
 
 - **Plateforme**: ESP32-S3 Touch LCD 7" (800x480)
 - **Affichage**: Driver ST7262 avec support RGB565
 - **Tactile**: Contrôleur GT911 multi-touch (5 points)
-- **Interface**: LVGL 9.2.2 avec design moderne
+- **Interface**: LVGL 9.4.0 avec design moderne
 - **Architecture**: Modulaire et maintenable
 
 ## 📋 Structure de l'interface
@@ -74,23 +74,33 @@ Le fichier `lv_conf.h` est placé dans `components/lvgl/` et, grâce à la défi
 
 ### Broches ESP32-S3 (Waveshare 7")
 ```c
-// Affichage ST7262
-#define PIN_MOSI       11
-#define PIN_MISO       -1   // non utilisé
-#define PIN_CLK        6
-#define PIN_CS         12
-#define PIN_DC         4
-#define DISPLAY_PIN_RST 21
-#define PIN_BCKL       2
+// Interface SPI de configuration ST7262
+#define LCD_CMD_MOSI_GPIO  11
+#define LCD_CMD_SCLK_GPIO   6
+#define LCD_CMD_CS_GPIO    12
+#define LCD_CMD_DC_GPIO     4
 
-// Tactile GT911
-#define PIN_SDA     8
-#define PIN_SCL     9
-#define PIN_INT     18
-#define TOUCH_PIN_RST 17
+// Tactile GT911 (I2C)
+#define PIN_SDA        8
+#define PIN_SCL        9
+#define PIN_INT       15
+#define TOUCH_PIN_RST 16
 ```
 
 Les broches MOSI et CS ont été déplacées respectivement sur GPIO11 et GPIO12 afin d'éliminer tout conflit avec les signaux RGB (PCLK en GPIO7 et DE en GPIO5).
+
+#### Tableau de correspondance des broches
+
+| Macro                | GPIO | Fonction                  | Fichier source                       |
+|----------------------|------|---------------------------|--------------------------------------|
+| `LCD_CMD_SCLK_GPIO`  | 6    | SPI SCLK (cmd ST7262)     | `components/st7262_rgb/st7262_rgb.c` |
+| `LCD_CMD_MOSI_GPIO`  | 11   | SPI MOSI (cmd ST7262)     | `components/st7262_rgb/st7262_rgb.c` |
+| `LCD_CMD_CS_GPIO`    | 12   | SPI CS (cmd ST7262)       | `components/st7262_rgb/st7262_rgb.c` |
+| `LCD_CMD_DC_GPIO`    | 4    | SPI D/C (cmd ST7262)      | `components/st7262_rgb/st7262_rgb.c` |
+| `PIN_SDA`            | 8    | I2C SDA (GT911)           | `main/drivers/touch_driver.c`        |
+| `PIN_SCL`            | 9    | I2C SCL (GT911)           | `main/drivers/touch_driver.c`        |
+| `PIN_INT`            | 15   | Interruption tactile      | `main/drivers/touch_driver.c`        |
+| `TOUCH_PIN_RST`      | 16   | Reset contrôleur tactile  | `main/drivers/touch_driver.c`        |
 
 ### Paramètres SPI/I2C
 - **SPI**: 40MHz, Mode 0, DMA activé
@@ -101,7 +111,8 @@ Les broches MOSI et CS ont été déplacées respectivement sur GPIO11 et GPIO12
 
 ### Prérequis
 - ESP-IDF 5.4.2 ou supérieur
-- LVGL 9.2.2 (inclus en composant)
+- LVGL 9.4.0 (inclus en composant)
+- PSRAM activée (support SPIRAM obligatoire pour le frame buffer)
 - Carte Waveshare ESP32-S3 Touch LCD 7"
 
 ### Étapes de compilation
