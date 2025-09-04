@@ -76,6 +76,8 @@ esp_err_t display_driver_init(void)
     buf1 = heap_caps_malloc(DISPLAY_BUF_SIZE * sizeof(lv_color_t), MALLOC_CAP_DMA);
     buf2 = heap_caps_malloc(DISPLAY_BUF_SIZE * sizeof(lv_color_t), MALLOC_CAP_DMA);
     if (!buf1 || !buf2) {
+        if (buf1) { heap_caps_free(buf1); buf1 = NULL; }
+        if (buf2) { heap_caps_free(buf2); buf2 = NULL; }
         ESP_LOGE(TAG, "Buffer alloc failed");
         return ESP_ERR_NO_MEM;
     }
