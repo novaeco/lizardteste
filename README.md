@@ -112,12 +112,12 @@ Les broches MOSI et CS ont été déplacées respectivement sur GPIO11 et GPIO12
 ### Prérequis
 - ESP-IDF 5.4.2 ou supérieur
 - LVGL 9.4.0 (inclus en composant)
-- PSRAM activée (support SPIRAM obligatoire pour le frame buffer)
+- PSRAM activée, le frame buffer étant placé en PSRAM via `CONFIG_USE_PSRAM`
 - Carte Waveshare ESP32-S3 Touch LCD 7"
 
 #### Démarrage sans PSRAM
 
-Lors de l'initialisation, le firmware vérifie la présence de la PSRAM via `esp_psram_init()` puis `esp_psram_get_chip_size()`. Si aucune PSRAM n'est détectée (taille nulle), l'initialisation est interrompue et l'erreur suivante est journalisée :
+Si `CONFIG_USE_PSRAM` est désactivé, le frame buffer est alloué en SRAM interne; pour un écran 800x480, cela dépasse la capacité disponible et l'initialisation échoue. Lors de l'initialisation, le firmware vérifie la présence de la PSRAM via `esp_psram_init()` puis `esp_psram_get_chip_size()`. Si aucune PSRAM n'est détectée (taille nulle), l'initialisation est interrompue et l'erreur suivante est journalisée :
 
 ```
 ESP_LOGE(TAG, "Aucune PSRAM détectée - initialisation annulée");

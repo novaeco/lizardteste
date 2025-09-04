@@ -133,10 +133,12 @@ esp_err_t st7262_rgb_new_panel(esp_lcd_panel_handle_t *ret_panel) {
               [14] = lcd_data_gpios[14],
               [15] = lcd_data_gpios[15],
           },
+#if CONFIG_USE_PSRAM
       .flags =
           {
               .fb_in_psram = true,
           },
+#endif
   };
 
   ret = esp_lcd_new_rgb_panel(&rgb_config, &panel);

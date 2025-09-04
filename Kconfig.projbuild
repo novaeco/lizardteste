@@ -1,0 +1,10 @@
+menu "NovaReptileElevage configuration"
+
+config USE_PSRAM
+    bool "Use PSRAM for LCD framebuffer"
+    default y
+    help
+        Enable to allocate the LCD framebuffer in external PSRAM.
+        Disable if PSRAM is unavailable or to force allocation in internal RAM.
+
+endmenu
