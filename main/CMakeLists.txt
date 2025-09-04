@@ -14,8 +14,9 @@ idf_component_register(
         "."
         "ui"
         "drivers"
-    REQUIRES 
+    REQUIRES
         lvgl
+        st7262_rgb
     PRIV_REQUIRES 
         nvs_flash
         esp_timer
