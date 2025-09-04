@@ -18,7 +18,17 @@ extern "C" {
 // Configuration de l'écran
 #define DISPLAY_WIDTH   800
 #define DISPLAY_HEIGHT  480
-#define DISPLAY_BUF_SIZE (DISPLAY_WIDTH * DISPLAY_HEIGHT / 10)
+
+/*
+ * Taille du tampon LVGL :
+ * - Avec PSRAM, on peut se permettre 1/4 de l'écran pour gagner en fluidité
+ * - Sans PSRAM, on réduit à 1/5 afin d'économiser la RAM interne
+ */
+#if CONFIG_SPIRAM
+#define DISPLAY_BUF_SIZE (DISPLAY_WIDTH * DISPLAY_HEIGHT / 4)
+#else
+#define DISPLAY_BUF_SIZE (DISPLAY_WIDTH * DISPLAY_HEIGHT / 5)
+#endif
 
 /**
  * @brief Initialise le driver d'affichage ST7262
