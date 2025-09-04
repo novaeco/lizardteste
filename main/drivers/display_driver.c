@@ -23,6 +23,11 @@ static const int SPI_MAX_TRANSFER_BYTES = SPI_LL_DMA_MAX_LEN;
 static const int SPI_MAX_TRANSFER_BYTES = 32768;
 #endif
 
+static inline size_t min_size_t(size_t a, size_t b)
+{
+    return (a < b) ? a : b;
+}
+
 // Configuration des broches (Waveshare ESP32-S3 Touch LCD 7")
 #define PIN_MOSI        11
 #define PIN_MISO        13
@@ -232,7 +237,7 @@ esp_err_t display_driver_init(void)
         .sclk_io_num = PIN_CLK,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
-        .max_transfer_sz = MIN(DISPLAY_BUF_SIZE * 2, SPI_MAX_TRANSFER_BYTES),
+        .max_transfer_sz = (int)min_size_t((size_t)DISPLAY_BUF_SIZE * 2, (size_t)SPI_MAX_TRANSFER_BYTES),
     };
     
     ret = spi_bus_initialize(DISPLAY_SPI_HOST, &buscfg, SPI_DMA_CHAN);
