@@ -124,7 +124,14 @@ esp_err_t ui_main_init(void)
     
     // Chargement de l'écran principal
     lv_scr_load(g_nova_ui.main_screen);
-    
+
+    // Vérification que l'écran actif est valide
+    lv_obj_t *active = lv_scr_act();
+    if (!active) {
+        ESP_LOGE(TAG, "lv_scr_act() renvoie NULL après le premier chargement d'écran");
+        return ESP_FAIL;
+    }
+
     // Affichage initial du tableau de bord
     ui_main_set_screen(SCREEN_DASHBOARD);
     
