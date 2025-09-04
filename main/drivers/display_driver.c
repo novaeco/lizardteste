@@ -21,9 +21,15 @@ static lv_color_t *buf2 = NULL;
 
 static void display_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
 {
+    int32_t w = area->x2 - area->x1 + 1;
+    int32_t h = area->y2 - area->y1 + 1;
+    ESP_LOGD(TAG, "flush start (%d,%d)->(%d,%d) size %dx%d",
+             area->x1, area->y1, area->x2, area->y2, w, h);
     esp_lcd_panel_draw_bitmap(panel_handle, area->x1, area->y1,
                               area->x2 + 1, area->y2 + 1, px_map);
     lv_display_flush_ready(disp);
+    ESP_LOGD(TAG, "flush end (%d,%d)->(%d,%d) size %dx%d",
+             area->x1, area->y1, area->x2, area->y2, w, h);
 }
 
 static esp_err_t init_backlight(void)
