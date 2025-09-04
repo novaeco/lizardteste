@@ -264,7 +264,15 @@ esp_err_t touch_driver_init(void) {
       .i2c_port = I2C_PORT,
       .sda_io_num = PIN_SDA,
       .scl_io_num = PIN_SCL,
+      .clk_source = I2C_CLK_SRC_DEFAULT, // ou I2C_CLK_SRC_PLL_F80 selon la carte
+      .flags = {
+          .enable_internal_pullup = true,
+      },
   };
+
+  // Activation explicite des pull-ups si non gérés par l'API
+  gpio_pullup_en(PIN_SDA);
+  gpio_pullup_en(PIN_SCL);
 
   ret = i2c_new_master_bus(&bus_conf, &i2c_bus);
   if (ret != ESP_OK) {
