@@ -80,19 +80,32 @@ esp_err_t display_driver_init(void)
         ESP_LOGE(TAG, "Backlight init failed: %d", ret);
         return ret;
     }
-    buf1 = heap_caps_malloc(DISPLAY_BUF_SIZE * sizeof(lv_color_t), MALLOC_CAP_DMA);
-    buf2 = heap_caps_malloc(DISPLAY_BUF_SIZE * sizeof(lv_color_t), MALLOC_CAP_DMA);
+    size_t buf_pixels = DISPLAY_BUF_SIZE;
+    buf1 = heap_caps_malloc(buf_pixels * sizeof(lv_color_t),
+                            MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA);
+    buf2 = heap_caps_malloc(buf_pixels * sizeof(lv_color_t),
+                            MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA);
     if (!buf1 || !buf2) {
         if (buf1) { heap_caps_free(buf1); buf1 = NULL; }
         if (buf2) { heap_caps_free(buf2); buf2 = NULL; }
-        ESP_LOGE(TAG, "Buffer alloc failed");
-        return ESP_ERR_NO_MEM;
+        ESP_LOGW(TAG, "PSRAM alloc failed, falling back to internal RAM");
+        buf_pixels = (DISPLAY_WIDTH * DISPLAY_HEIGHT) / 5;
+        buf1 = heap_caps_malloc(buf_pixels * sizeof(lv_color_t),
+                                MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
+        buf2 = heap_caps_malloc(buf_pixels * sizeof(lv_color_t),
+                                MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
+        if (!buf1 || !buf2) {
+            if (buf1) { heap_caps_free(buf1); buf1 = NULL; }
+            if (buf2) { heap_caps_free(buf2); buf2 = NULL; }
+            ESP_LOGE(TAG, "Buffer alloc failed");
+            return ESP_ERR_NO_MEM;
+        }
     }
     display = lv_display_create(DISPLAY_WIDTH, DISPLAY_HEIGHT);
     lv_display_set_default(display);
     lv_display_set_flush_cb(display, display_flush_cb);
     lv_display_set_buffers(display, buf1, buf2,
-                           DISPLAY_BUF_SIZE * sizeof(lv_color_t),
+                           buf_pixels * sizeof(lv_color_t),
                            LV_DISPLAY_RENDER_MODE_PARTIAL);
     ESP_LOGI(TAG, "Display driver initialized");
     return ESP_OK;
