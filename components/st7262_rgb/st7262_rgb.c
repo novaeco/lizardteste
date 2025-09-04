@@ -18,8 +18,15 @@
 #define LCD_DE_GPIO 5
 #define LCD_PCLK_GPIO 7
 
-static const int lcd_data_gpios[16] = {45, 48, 47, 21, 14, 13, 12, 11,
-                                       10, 9,  46, 3,  8,  18, 17, 16};
+/*
+ * Data line mapping for 16-bit RGB565 (Waveshare panel):
+ * D0→B3, D1→B4, D2→B5, D3→B6, D4→B7,
+ * D5→G2, D6→G3, D7→G4, D8→G5, D9→G6, D10→G7,
+ * D11→R3, D12→R4, D13→R5, D14→R6, D15→R7
+ */
+static const int lcd_data_gpios[16] = {
+    14, 38, 18, 17, 10, 39, 0, 45,
+    48, 47, 21, 1, 2, 42, 41, 40};
 
 // SPI interface for ST7262 command configuration
 #define LCD_CMD_SPI_HOST SPI2_HOST
