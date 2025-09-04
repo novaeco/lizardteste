@@ -108,7 +108,7 @@ esp_err_t st7262_rgb_new_panel(esp_lcd_panel_handle_t *ret_panel) {
           },
       .data_width = 16,
       .bits_per_pixel = 16,
-      .num_fbs = 0,
+      .num_fbs = 1,
       .hsync_gpio_num = LCD_HSYNC_GPIO,
       .vsync_gpio_num = LCD_VSYNC_GPIO,
       .de_gpio_num = LCD_DE_GPIO,
