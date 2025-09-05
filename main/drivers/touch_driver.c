@@ -44,7 +44,6 @@ typedef struct {
 
 static bool touch_initialized = false;
 static volatile bool touch_pressed = false;
-static i2c_master_bus_handle_t i2c_bus = NULL;
 static i2c_master_dev_handle_t gt911_dev = NULL;
 
 /**
@@ -273,16 +272,9 @@ esp_err_t touch_driver_init(void) {
   if (ret == ESP_OK)
     isr_service_installed = true;
 
-  ret = gpio_isr_handler_add(PIN_INT, touch_isr_handler, NULL);
-  if (ret != ESP_OK) {
-    ESP_LOGE(TAG, "Erreur ajout handler ISR");
-    goto fail;
-  }
-  isr_handler_added = true;
-
   // Récupération du bus I2C partagé et ajout du périphérique GT911
-  i2c_bus = i2c_bus_get();
-  if (!i2c_bus) {
+  i2c_master_bus_handle_t bus = i2c_bus_get();
+  if (!bus) {
     ESP_LOGE(TAG, "Bus I2C non initialisé");
     ret = ESP_ERR_INVALID_STATE;
     goto fail;
@@ -294,10 +286,9 @@ esp_err_t touch_driver_init(void) {
       .scl_speed_hz = I2C_FREQUENCY,
   };
 
-  ret = i2c_master_bus_add_device(i2c_bus, &dev_conf, &gt911_dev);
+  ret = i2c_master_bus_add_device(bus, &dev_conf, &gt911_dev);
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Erreur ajout device I2C");
-    i2c_bus = NULL;
     goto fail;
   }
 
@@ -307,7 +298,6 @@ esp_err_t touch_driver_init(void) {
     ESP_LOGE(TAG, "Erreur initialisation GT911");
     i2c_master_bus_rm_device(gt911_dev);
     gt911_dev = NULL;
-    i2c_bus = NULL;
     goto fail;
   }
 
@@ -317,13 +307,23 @@ esp_err_t touch_driver_init(void) {
     ESP_LOGE(TAG, "Erreur création device tactile LVGL");
     i2c_master_bus_rm_device(gt911_dev);
     gt911_dev = NULL;
-    i2c_bus = NULL;
     ret = ESP_FAIL;
     goto fail;
   }
 
   lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
   lv_indev_set_read_cb(indev, touch_read);
+
+  // Attache de l'ISR après initialisation réussie
+  ret = gpio_isr_handler_add(PIN_INT, touch_isr_handler, NULL);
+  if (ret != ESP_OK) {
+    ESP_LOGE(TAG, "Erreur ajout handler ISR");
+    i2c_master_bus_rm_device(gt911_dev);
+    gt911_dev = NULL;
+    goto fail;
+  }
+  isr_handler_added = true;
+  ESP_LOGD(TAG, "ISR tactile attachée sur GPIO%d", PIN_INT);
 
   touch_initialized = true;
   ESP_LOGI(TAG, "Driver tactile GT911 initialisé avec succès");
@@ -360,9 +360,6 @@ void touch_driver_deinit(void) {
     if (gt911_dev) {
       i2c_master_bus_rm_device(gt911_dev);
       gt911_dev = NULL;
-    }
-    if (i2c_bus) {
-      i2c_bus = NULL;
     }
     touch_initialized = false;
     ESP_LOGI(TAG, "Driver tactile désactivé");
