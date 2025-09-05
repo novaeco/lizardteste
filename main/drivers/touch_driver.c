@@ -12,6 +12,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <string.h>
+#include <stdlib.h>
 
 static const char *TAG = "Touch_Driver";
 
@@ -80,11 +81,16 @@ static esp_err_t gt911_read_reg(uint16_t reg_addr, uint8_t *data, size_t len) {
  */
 static esp_err_t gt911_write_reg(uint16_t reg_addr, const uint8_t *data,
                                  size_t len) {
-  uint8_t buf[2 + len];
+  uint8_t *buf = malloc(2 + len);
+  if (buf == NULL) {
+    return ESP_ERR_NO_MEM;
+  }
   buf[0] = (reg_addr >> 8) & 0xFF;
   buf[1] = reg_addr & 0xFF;
   memcpy(&buf[2], data, len);
-  return i2c_master_transmit(gt911_dev, buf, sizeof(buf), 1000);
+  esp_err_t ret = i2c_master_transmit(gt911_dev, buf, 2 + len, 1000);
+  free(buf);
+  return ret;
 }
 
 /**
