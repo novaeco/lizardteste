@@ -1,10 +1,9 @@
 #include "st7262_rgb.h"
-#include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_rgb.h"
-#include "esp_lcd_io_spi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/spi_master.h"
+#include "driver/gpio.h"
 #include "esp_log.h"
 
 #define TAG "st7262_rgb"
@@ -29,7 +28,8 @@ static const int lcd_data_gpios[16] = {
     48, 47, 21, 1, 2, 42, 41, 40};
 
 // SPI interface for ST7262 command configuration
-#define LCD_CMD_SPI_HOST SPI2_HOST
+// Use a dedicated SPI3 bus to avoid conflicts with other peripherals (e.g. TF-Card)
+#define LCD_CMD_SPI_HOST SPI3_HOST
 #define LCD_CMD_SCLK_GPIO  6
 #define LCD_CMD_MOSI_GPIO  11
 #define LCD_CMD_CS_GPIO    12
@@ -58,7 +58,7 @@ esp_err_t st7262_rgb_new_panel(esp_lcd_panel_handle_t *ret_panel) {
   esp_err_t ret;
   esp_lcd_panel_handle_t panel = NULL;
 
-  // Initialize SPI bus for command interface
+  // Initialize SPI bus for command interface on SPI3_HOST
   spi_bus_config_t buscfg = {
       .sclk_io_num = LCD_CMD_SCLK_GPIO,
       .mosi_io_num = LCD_CMD_MOSI_GPIO,
@@ -72,19 +72,23 @@ esp_err_t st7262_rgb_new_panel(esp_lcd_panel_handle_t *ret_panel) {
     return ret;
   }
 
-  esp_lcd_panel_io_handle_t io_handle = NULL;
-  esp_lcd_panel_io_spi_config_t io_config = {
-      .cs_gpio_num = LCD_CMD_CS_GPIO,
-      .dc_gpio_num = LCD_CMD_DC_GPIO,
-      .spi_mode = 0,
-      .pclk_hz = 10 * 1000 * 1000,
-      .trans_queue_depth = 10,
-      .lcd_cmd_bits = 8,
-      .lcd_param_bits = 8,
+  // Configure D/C GPIO used to distinguish commands from parameters
+  gpio_config_t dc_conf = {
+      .pin_bit_mask = 1ULL << LCD_CMD_DC_GPIO,
+      .mode = GPIO_MODE_OUTPUT,
   };
-  ret = esp_lcd_new_panel_io_spi(LCD_CMD_SPI_HOST, &io_config, &io_handle);
+  gpio_config(&dc_conf);
+
+  spi_device_interface_config_t devcfg = {
+      .clock_speed_hz = 10 * 1000 * 1000,
+      .mode = 0,
+      .spics_io_num = LCD_CMD_CS_GPIO,
+      .queue_size = 10,
+  };
+  spi_device_handle_t cmd_spi_dev;
+  ret = spi_bus_add_device(LCD_CMD_SPI_HOST, &devcfg, &cmd_spi_dev);
   if (ret != ESP_OK) {
-    ESP_LOGE(TAG, "panel io create failed: %d", ret);
+    ESP_LOGE(TAG, "spi bus add device failed: %d", ret);
     spi_bus_free(LCD_CMD_SPI_HOST);
     return ret;
   }
@@ -148,28 +152,48 @@ esp_err_t st7262_rgb_new_panel(esp_lcd_panel_handle_t *ret_panel) {
   ret = esp_lcd_new_rgb_panel(&rgb_config, &panel);
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "rgb panel create failed: %d", ret);
-    esp_lcd_panel_io_del(io_handle);
+    spi_bus_remove_device(cmd_spi_dev);
     spi_bus_free(LCD_CMD_SPI_HOST);
     return ret;
   }
 
   // Send initialization commands over SPI
   for (int i = 0; st7262_init_cmds[i].cmd != 0; i++) {
-    ret = esp_lcd_panel_io_tx_param(io_handle, st7262_init_cmds[i].cmd,
-                                    st7262_init_cmds[i].data,
-                                    st7262_init_cmds[i].data_bytes);
+    spi_transaction_t t = {0};
+
+    // Send command byte
+    t.length = 8;
+    t.tx_buffer = &st7262_init_cmds[i].cmd;
+    gpio_set_level(LCD_CMD_DC_GPIO, 0);
+    ret = spi_device_polling_transmit(cmd_spi_dev, &t);
     if (ret != ESP_OK) {
       ESP_LOGE(TAG, "init cmd %d failed: %d", i, ret);
-      esp_lcd_panel_io_del(io_handle);
+      spi_bus_remove_device(cmd_spi_dev);
       spi_bus_free(LCD_CMD_SPI_HOST);
       return ret;
     }
+
+    // Send optional data bytes
+    if (st7262_init_cmds[i].data_bytes) {
+      t.length = 8 * st7262_init_cmds[i].data_bytes;
+      t.tx_buffer = st7262_init_cmds[i].data;
+      gpio_set_level(LCD_CMD_DC_GPIO, 1);
+      ret = spi_device_polling_transmit(cmd_spi_dev, &t);
+      if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "init data %d failed: %d", i, ret);
+        spi_bus_remove_device(cmd_spi_dev);
+        spi_bus_free(LCD_CMD_SPI_HOST);
+        return ret;
+      }
+    }
+
     if (st7262_init_cmds[i].delay_ms) {
       vTaskDelay(pdMS_TO_TICKS(st7262_init_cmds[i].delay_ms));
     }
   }
 
-  esp_lcd_panel_io_del(io_handle);
+  // Command interface no longer needed
+  spi_bus_remove_device(cmd_spi_dev);
   spi_bus_free(LCD_CMD_SPI_HOST);
 
   ESP_ERROR_CHECK(esp_lcd_panel_reset(panel));
