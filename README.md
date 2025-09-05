@@ -111,6 +111,7 @@ Les broches MOSI et CS ont été déplacées respectivement sur GPIO11 et GPIO12
 
 ### Prérequis
 - ESP-IDF 5.4.2 ou supérieur
+- Outil `idf.py` disponible dans le `PATH`
 - LVGL 9.4.0 (inclus en composant)
 - PSRAM activée, le frame buffer étant placé en PSRAM via `CONFIG_USE_PSRAM`
 - Carte Waveshare ESP32-S3 Touch LCD 7"

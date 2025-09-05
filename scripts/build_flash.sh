@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+command -v idf.py >/dev/null || { echo "idf.py introuvable"; exit 1; }
+
 usage() {
   echo "Usage: $0 <PORT> [--baud <BAUD>] [--erase]"
 }
