@@ -192,9 +192,20 @@ void ui_main_update_realtime_data(void)
 {
     // Mise à jour des données temps réel
     ui_footer_update_status();
-    
+
     // Mise à jour du contenu si nécessaire
     if (g_current_screen == SCREEN_DASHBOARD || g_current_screen == SCREEN_STATISTICS) {
         ui_content_update_realtime_data();
     }
+}
+
+void ui_main_deinit(void)
+{
+    if (g_nova_ui.main_screen) {
+        lv_obj_del(g_nova_ui.main_screen);
+    }
+
+    ui_styles_deinit();
+
+    g_nova_ui = (nova_ui_t){0};
 }

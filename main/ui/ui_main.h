@@ -75,6 +75,11 @@ nova_screen_t ui_main_get_current_screen(void);
  */
 void ui_main_update_realtime_data(void);
 
+/**
+ * @brief Libère l'interface principale et ses ressources
+ */
+void ui_main_deinit(void);
+
 #ifdef __cplusplus
 }
 #endif
