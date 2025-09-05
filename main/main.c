@@ -107,7 +107,6 @@ static esp_err_t nova_reptile_init(void)
     ret = ch422g_init();
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur initialisation CH422G: %s", esp_err_to_name(ret));
-        i2c_bus_deinit();
         lv_deinit();
         return ret;
     }
