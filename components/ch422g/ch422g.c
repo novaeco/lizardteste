@@ -20,7 +20,13 @@ static uint8_t s_output_state = 0x00;
 
 static esp_err_t ch422g_write_state(void)
 {
-    return i2c_master_transmit(s_dev, &s_output_state, 1, 1000);
+    esp_err_t err = i2c_master_transmit(s_dev, &s_output_state, 1, 1000);
+    if (err == ESP_ERR_TIMEOUT) {
+        ESP_LOGE(TAG, "i2c_master_transmit timeout");
+    } else if (err != ESP_OK) {
+        ESP_LOGE(TAG, "i2c_master_transmit failed: %s", esp_err_to_name(err));
+    }
+    return err;
 }
 
 esp_err_t ch422g_init(void)
