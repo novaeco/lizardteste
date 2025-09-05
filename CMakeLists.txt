@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.5)
-
-# Configuration du projet NovaReptileElevage
 set(PROJECT_NAME "nova_reptile_elevage")
 
+# Configuration du projet NovaReptileElevage
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-idf_build_set_property(SDKCONFIG_DEFAULTS "sdkconfig.defaults")
 project(${PROJECT_NAME})
+
+idf_build_set_property(SDKCONFIG_DEFAULTS "sdkconfig.defaults")
 
 if(NOT DEFINED ENV{IDF_TARGET})
     set(ENV{IDF_TARGET} esp32s3)
