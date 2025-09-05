@@ -215,8 +215,18 @@ static void touch_read(lv_indev_t *indev, lv_indev_data_t *data) {
   }
 }
 
+/**
+ * @brief Initialise le driver tactile GT911.
+ *
+ * En cas d'échec, une séquence de rollback est exécutée afin de laisser le
+ * matériel dans un état sûr :
+ *   1. suppression du handler et du service ISR ;
+ *   2. reconfiguration de PIN_INT et TOUCH_PIN_RST en entrée pull-up.
+ */
 esp_err_t touch_driver_init(void) {
   esp_err_t ret;
+  bool isr_service_installed = false;
+  bool isr_handler_added = false;
 
   ESP_LOGI(TAG, "Initialisation du driver tactile GT911");
 
@@ -236,7 +246,7 @@ esp_err_t touch_driver_init(void) {
   ret = gpio_config(&rst_conf);
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Erreur configuration GPIO RST");
-    return ret;
+    goto fail;
   }
 
   // Configuration de la broche INT (entrée avec pull-up)
@@ -250,21 +260,23 @@ esp_err_t touch_driver_init(void) {
   ret = gpio_config(&int_conf);
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Erreur configuration GPIO INT");
-    return ret;
+    goto fail;
   }
 
   ret = gpio_install_isr_service(0);
   if (ret != ESP_OK && ret != ESP_ERR_INVALID_STATE) {
     ESP_LOGE(TAG, "Erreur installation service ISR");
-    return ret;
+    goto fail;
   }
+  if (ret == ESP_OK)
+    isr_service_installed = true;
 
   ret = gpio_isr_handler_add(PIN_INT, touch_isr_handler, NULL);
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Erreur ajout handler ISR");
-    gpio_uninstall_isr_service();
-    return ret;
+    goto fail;
   }
+  isr_handler_added = true;
 
   // Configuration du bus I2C et ajout du périphérique GT911
   i2c_master_bus_config_t bus_conf = {
@@ -284,7 +296,7 @@ esp_err_t touch_driver_init(void) {
   ret = i2c_new_master_bus(&bus_conf, &i2c_bus);
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Erreur création bus I2C");
-    return ret;
+    goto fail;
   }
 
   i2c_device_config_t dev_conf = {
@@ -298,7 +310,7 @@ esp_err_t touch_driver_init(void) {
     ESP_LOGE(TAG, "Erreur ajout device I2C");
     i2c_del_master_bus(i2c_bus);
     i2c_bus = NULL;
-    return ret;
+    goto fail;
   }
 
   // Initialisation du GT911
@@ -309,7 +321,7 @@ esp_err_t touch_driver_init(void) {
     i2c_del_master_bus(i2c_bus);
     gt911_dev = NULL;
     i2c_bus = NULL;
-    return ret;
+    goto fail;
   }
 
   // Configuration du driver d'entrée LVGL
@@ -320,7 +332,8 @@ esp_err_t touch_driver_init(void) {
     i2c_del_master_bus(i2c_bus);
     gt911_dev = NULL;
     i2c_bus = NULL;
-    return ESP_FAIL;
+    ret = ESP_FAIL;
+    goto fail;
   }
 
   lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
@@ -330,6 +343,26 @@ esp_err_t touch_driver_init(void) {
   ESP_LOGI(TAG, "Driver tactile GT911 initialisé avec succès");
 
   return ESP_OK;
+
+fail:
+  /*
+   * Séquence de rollback :
+   *  - suppression du handler et du service ISR
+   *  - reconfiguration de PIN_INT et TOUCH_PIN_RST en entrée pull-up
+   */
+  if (isr_handler_added)
+    gpio_isr_handler_remove(PIN_INT);
+  if (isr_service_installed)
+    gpio_uninstall_isr_service();
+  gpio_config_t rollback_conf = {
+      .pin_bit_mask = (1ULL << PIN_INT) | (1ULL << TOUCH_PIN_RST),
+      .mode = GPIO_MODE_INPUT,
+      .pull_up_en = GPIO_PULLUP_ENABLE,
+      .pull_down_en = GPIO_PULLDOWN_DISABLE,
+      .intr_type = GPIO_INTR_DISABLE,
+  };
+  gpio_config(&rollback_conf);
+  return ret;
 }
 
 void touch_driver_deinit(void) {
