@@ -103,6 +103,18 @@ esp_err_t display_driver_init(void)
         }
     }
     display = lv_display_create(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+    if (!display) {
+        if (buf1) {
+            heap_caps_free(buf1);
+            buf1 = NULL;
+        }
+        if (buf2) {
+            heap_caps_free(buf2);
+            buf2 = NULL;
+        }
+        ESP_LOGE(TAG, "lv_display_create failed");
+        return ESP_ERR_NO_MEM;
+    }
     lv_display_set_default(display);
     lv_display_set_flush_cb(display, display_flush_cb);
     lv_display_set_buffers(display, buf1, buf2,
