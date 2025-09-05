@@ -51,6 +51,10 @@ static const st7262_init_cmd_t st7262_init_cmds[] = {
 };
 
 esp_err_t st7262_rgb_new_panel(esp_lcd_panel_handle_t *ret_panel) {
+  if (!ret_panel) {
+    return ESP_ERR_INVALID_ARG;
+  }
+
   esp_err_t ret;
   esp_lcd_panel_handle_t panel = NULL;
 
@@ -173,5 +177,9 @@ esp_err_t st7262_rgb_new_panel(esp_lcd_panel_handle_t *ret_panel) {
   ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel, true));
 
   *ret_panel = panel;
+  if (*ret_panel == NULL) {
+    return ESP_FAIL;
+  }
+
   return ESP_OK;
 }
