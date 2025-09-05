@@ -129,6 +129,28 @@ static esp_err_t nova_reptile_init(void)
 }
 
 /**
+ * @brief Déinitialisation globale du système NovaReptileElevage
+ *
+ * Libère l'ensemble des sous-systèmes initialisés par nova_reptile_init()
+ * et arrête le timer haute résolution utilisé par LVGL.
+ */
+static void nova_reptile_deinit(void)
+{
+    if (lvgl_tick_timer) {
+        ESP_ERROR_CHECK(esp_timer_stop(lvgl_tick_timer));
+        ESP_ERROR_CHECK(esp_timer_delete(lvgl_tick_timer));
+        lvgl_tick_timer = NULL;
+    }
+
+    ui_styles_deinit();
+    touch_driver_deinit();
+    display_driver_deinit();
+    lv_deinit();
+
+    ESP_LOGI(TAG, "Système NovaReptileElevage déinitialisé");
+}
+
+/**
  * @brief Fonction principale de l'application
  */
 void app_main(void)
@@ -164,6 +186,7 @@ void app_main(void)
 
     if (task_ret != pdPASS) {
         ESP_LOGE(TAG, "Échec création tâche LVGL: %ld", task_ret);
+        nova_reptile_deinit();
         esp_restart();
     }
     
