@@ -88,7 +88,12 @@ static void msgbox_event_cb(lv_event_t *e)
 {
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     lv_obj_t *btn = lv_event_get_target(e);
-    const char *txt = lv_label_get_text(lv_obj_get_child(btn, 0));
+    lv_obj_t *label = NULL;
+    if (lv_obj_get_child_cnt(btn) > 0) {
+        label = lv_obj_get_child(btn, 0);
+    }
+    if (!label) return;
+    const char *txt = lv_label_get_text(label);
     lv_obj_t *box = lv_obj_get_parent(btn);
     ESP_LOGI(TAG, "Bouton message box: %s", txt);
     lv_obj_del_async(box);
