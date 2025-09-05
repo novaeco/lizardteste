@@ -83,8 +83,8 @@ Le fichier `lv_conf.h` est placé dans `components/lvgl/` et, grâce à la défi
 // Tactile GT911 (I2C)
 #define PIN_SDA        8
 #define PIN_SCL        9
-#define PIN_INT       15
-#define TOUCH_PIN_RST 16
+#define PIN_INT        4
+#define TOUCH_PIN_RST  EXIO1 // via CH422G
 ```
 
 Les broches MOSI et CS ont été déplacées respectivement sur GPIO11 et GPIO12 afin d'éliminer tout conflit avec les signaux RGB (PCLK en GPIO7 et DE en GPIO5).
@@ -99,8 +99,8 @@ Les broches MOSI et CS ont été déplacées respectivement sur GPIO11 et GPIO12
 | `LCD_CMD_DC_GPIO`    | 4    | SPI D/C (cmd ST7262)      | `components/st7262_rgb/st7262_rgb.c` |
 | `PIN_SDA`            | 8    | I2C SDA (GT911)           | `main/drivers/touch_driver.c`        |
 | `PIN_SCL`            | 9    | I2C SCL (GT911)           | `main/drivers/touch_driver.c`        |
-| `PIN_INT`            | 15   | Interruption tactile      | `main/drivers/touch_driver.c`        |
-| `TOUCH_PIN_RST`      | 16   | Reset contrôleur tactile  | `main/drivers/touch_driver.c`        |
+| `PIN_INT`            | 4    | Interruption tactile      | `main/drivers/touch_driver.c`        |
+| `TOUCH_PIN_RST`      | CH422G EXIO1 | Reset contrôleur tactile  | `main/drivers/touch_driver.c`        |
 
 ### Paramètres SPI/I2C
 - **SPI**: 40MHz, Mode 0, DMA activé

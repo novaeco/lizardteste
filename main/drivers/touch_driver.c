@@ -12,6 +12,7 @@
 #include "esp_attr.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "ch422.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -20,9 +21,10 @@ static const char *TAG = "Touch_Driver";
 // Configuration des broches I2C (Waveshare ESP32-S3 Touch LCD 7")
 #define PIN_SDA 8
 #define PIN_SCL 9
-// Affectation de broches libres hors bus LCD pour l'interface tactile
-#define PIN_INT 15        // Broche d'interruption GT911
-#define TOUCH_PIN_RST 16  // Broche de reset GT911
+// Broche d'interruption du GT911
+#define PIN_INT 4
+// Reset du GT911 via le CH422G (sortie EXIO1)
+#define TOUCH_PIN_RST EXIO1
 
 // Configuration I2C
 #define I2C_PORT I2C_NUM_0
@@ -101,24 +103,22 @@ static esp_err_t gt911_write_reg(uint16_t reg_addr, const uint8_t *data,
 static esp_err_t gt911_init(void) {
   ESP_LOGI(TAG, "Initialisation du contrôleur GT911");
 
-  // Reset du contrôleur
-  esp_err_t err = gpio_set_level(TOUCH_PIN_RST, 0);
+  // Reset du contrôleur via le CH422G
+  esp_err_t err = ch422_set_pin(TOUCH_PIN_RST, false);
   if (err != ESP_OK) {
-    ESP_LOGE(TAG, "gpio_set_level(TOUCH_PIN_RST, 0) failed: %s",
+    ESP_LOGE(TAG, "ch422_set_pin(TOUCH_PIN_RST, 0) failed: %s",
              esp_err_to_name(err));
     return err;
   }
-  ESP_ERROR_CHECK(err);
 
   vTaskDelay(pdMS_TO_TICKS(10));
 
-  err = gpio_set_level(TOUCH_PIN_RST, 1);
+  err = ch422_set_pin(TOUCH_PIN_RST, true);
   if (err != ESP_OK) {
-    ESP_LOGE(TAG, "gpio_set_level(TOUCH_PIN_RST, 1) failed: %s",
+    ESP_LOGE(TAG, "ch422_set_pin(TOUCH_PIN_RST, 1) failed: %s",
              esp_err_to_name(err));
     return err;
   }
-  ESP_ERROR_CHECK(err);
   vTaskDelay(pdMS_TO_TICKS(100));
 
   // Lecture de l'ID du contrôleur
@@ -236,7 +236,7 @@ static void touch_read(lv_indev_t *indev, lv_indev_data_t *data) {
  * En cas d'échec, une séquence de rollback est exécutée afin de laisser le
  * matériel dans un état sûr :
  *   1. suppression du handler et du service ISR ;
- *   2. reconfiguration de PIN_INT et TOUCH_PIN_RST en entrée pull-up.
+ *   2. reconfiguration de PIN_INT en entrée pull-up.
  */
 esp_err_t touch_driver_init(void) {
   esp_err_t ret;
@@ -250,31 +250,27 @@ esp_err_t touch_driver_init(void) {
     return ESP_OK;
   }
 
-  // Configuration de la broche RST (sortie)
-  gpio_config_t rst_conf = {
-      .pin_bit_mask = (1ULL << TOUCH_PIN_RST),
-      .mode = GPIO_MODE_OUTPUT,
-      .pull_up_en = GPIO_PULLUP_DISABLE,
-      .pull_down_en = GPIO_PULLDOWN_DISABLE,
-      .intr_type = GPIO_INTR_DISABLE,
-  };
-  ret = gpio_config(&rst_conf);
+  // Initialisation du CH422G pour piloter TOUCH_PIN_RST
+  ret = ch422_init();
   if (ret != ESP_OK) {
-    ESP_LOGE(TAG, "Erreur configuration GPIO RST");
+    ESP_LOGE(TAG, "Erreur initialisation CH422G");
     goto fail;
   }
 
-  // Configuration de la broche INT (entrée avec pull-up)
-  gpio_config_t int_conf = {
-      .pin_bit_mask = (1ULL << PIN_INT),
-      .mode = GPIO_MODE_INPUT,
-      .pull_up_en = GPIO_PULLUP_ENABLE,
-      .pull_down_en = GPIO_PULLDOWN_DISABLE,
-      .intr_type = GPIO_INTR_NEGEDGE, // Préparation pour une ISR
-  };
-  ret = gpio_config(&int_conf);
+  // Test et configuration de la broche INT (entrée avec pull-up)
+  ret = gpio_set_direction(PIN_INT, GPIO_MODE_INPUT);
   if (ret != ESP_OK) {
-    ESP_LOGE(TAG, "Erreur configuration GPIO INT");
+    ESP_LOGE(TAG, "Erreur configuration direction GPIO INT");
+    goto fail;
+  }
+  ret = gpio_pullup_en(PIN_INT);
+  if (ret != ESP_OK) {
+    ESP_LOGE(TAG, "Erreur activation pull-up sur INT");
+    goto fail;
+  }
+  ret = gpio_set_intr_type(PIN_INT, GPIO_INTR_NEGEDGE);
+  if (ret != ESP_OK) {
+    ESP_LOGE(TAG, "Erreur configuration interruption GPIO INT");
     goto fail;
   }
 
@@ -363,20 +359,22 @@ fail:
   /*
    * Séquence de rollback :
    *  - suppression du handler et du service ISR
-   *  - reconfiguration de PIN_INT et TOUCH_PIN_RST en entrée pull-up
+   *  - reconfiguration de PIN_INT en entrée pull-up
    */
   if (isr_handler_added)
     gpio_isr_handler_remove(PIN_INT);
   if (isr_service_installed)
     gpio_uninstall_isr_service();
   gpio_config_t rollback_conf = {
-      .pin_bit_mask = (1ULL << PIN_INT) | (1ULL << TOUCH_PIN_RST),
+      .pin_bit_mask = (1ULL << PIN_INT),
       .mode = GPIO_MODE_INPUT,
       .pull_up_en = GPIO_PULLUP_ENABLE,
       .pull_down_en = GPIO_PULLDOWN_DISABLE,
       .intr_type = GPIO_INTR_DISABLE,
   };
   gpio_config(&rollback_conf);
+  // Assure le GT911 maintenu en reset via le CH422G
+  ch422_set_pin(TOUCH_PIN_RST, false);
   return ret;
 }
 
@@ -434,13 +432,12 @@ void touch_set_enable(bool enable) {
     }
     ESP_ERROR_CHECK(err);
 
-    err = gpio_set_level(TOUCH_PIN_RST, 1);
+    err = ch422_set_pin(TOUCH_PIN_RST, true);
     if (err != ESP_OK) {
-      ESP_LOGE(TAG, "gpio_set_level(TOUCH_PIN_RST, 1) failed: %s",
+      ESP_LOGE(TAG, "ch422_set_pin(TOUCH_PIN_RST, 1) failed: %s",
                esp_err_to_name(err));
       return;
     }
-    ESP_ERROR_CHECK(err);
     vTaskDelay(pdMS_TO_TICKS(50));
     err = gpio_set_direction(PIN_INT, GPIO_MODE_INPUT);
     if (err != ESP_OK) {
@@ -474,13 +471,12 @@ void touch_set_enable(bool enable) {
     }
     ESP_ERROR_CHECK(err);
 
-    err = gpio_set_level(TOUCH_PIN_RST, 0);
+    err = ch422_set_pin(TOUCH_PIN_RST, false);
     if (err != ESP_OK) {
-      ESP_LOGE(TAG, "gpio_set_level(TOUCH_PIN_RST, 0) failed: %s",
+      ESP_LOGE(TAG, "ch422_set_pin(TOUCH_PIN_RST, 0) failed: %s",
                esp_err_to_name(err));
       return;
     }
-    ESP_ERROR_CHECK(err);
   }
 }
 
