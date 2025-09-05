@@ -7,13 +7,11 @@
 #include "st7262_rgb.h"
 #include "esp_log.h"
 #include "esp_attr.h"
-#include "driver/ledc.h"
 #include "esp_timer.h"
 #include "esp_lcd_panel_ops.h"
+#include "ch422.h"
 
 static const char *TAG = "Display_Driver";
-
-#define PIN_BCKL 2
 
 static esp_lcd_panel_handle_t panel_handle;
 static lv_display_t *display;
@@ -40,35 +38,6 @@ static void display_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t 
              (long long)(end - start));
 }
 
-static esp_err_t init_backlight(void)
-{
-    ledc_timer_config_t ledc_timer = {
-        .duty_resolution = LEDC_TIMER_8_BIT,
-        .freq_hz = 5000,
-        .speed_mode = LEDC_LOW_SPEED_MODE,
-        .timer_num = LEDC_TIMER_0,
-        .clk_cfg = LEDC_AUTO_CLK,
-    };
-    esp_err_t ret = ledc_timer_config(&ledc_timer);
-    if (ret != ESP_OK) {
-        return ret;
-    }
-    ledc_channel_config_t ledc_channel = {
-        .channel = LEDC_CHANNEL_0,
-        .duty = 200,
-        .gpio_num = PIN_BCKL,
-        .speed_mode = LEDC_LOW_SPEED_MODE,
-        .hpoint = 0,
-        .timer_sel = LEDC_TIMER_0,
-    };
-    ret = ledc_channel_config(&ledc_channel);
-    if (ret != ESP_OK) {
-        return ret;
-    }
-    ESP_LOGI(TAG, "Backlight initialized");
-    return ESP_OK;
-}
-
 esp_err_t display_driver_init(void)
 {
     esp_err_t ret = st7262_rgb_new_panel(&panel_handle);
@@ -76,11 +45,12 @@ esp_err_t display_driver_init(void)
         ESP_LOGE(TAG, "Failed to init panel: %d", ret);
         return ret;
     }
-    ret = init_backlight();
+    ret = ch422_init();
     if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Backlight init failed: %d", ret);
+        ESP_LOGE(TAG, "CH422 init failed: %d", ret);
         return ret;
     }
+    ch422_set_pin(EXIO2, true);
     size_t buf_pixels = DISPLAY_BUF_SIZE;
     buf1 = heap_caps_malloc(buf_pixels * sizeof(lv_color_t),
                             MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA);
@@ -130,8 +100,7 @@ void display_driver_deinit(void)
         lv_display_delete(display);
         display = NULL;
     }
-    ledc_stop(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, 0);
-    ledc_timer_rst(LEDC_LOW_SPEED_MODE, LEDC_TIMER_0);
+    ch422_set_pin(EXIO2, false);
     if (buf1) {
         heap_caps_free(buf1);
         buf1 = NULL;
@@ -150,10 +119,7 @@ void display_driver_deinit(void)
 
 void display_set_brightness(uint8_t brightness)
 {
-    if (brightness > 100) brightness = 100;
-    uint32_t duty = (brightness * 255) / 100;
-    ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, duty);
-    ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
+    ch422_set_pin(EXIO2, brightness > 0);
 }
 
 esp_err_t display_set_sleep(bool sleep)
