@@ -137,6 +137,19 @@ esp_err_t ui_sidebar_init(lv_obj_t *parent)
         esp_err_t ret = create_menu_item(parent, i);
         if (ret != ESP_OK) {
             ESP_LOGE(TAG, "Erreur création élément menu %d", i);
+
+            // Nettoyage des éléments déjà créés
+            if (menu_items[i].container) {
+                lv_obj_del(menu_items[i].container);
+                menu_items[i].container = NULL;
+            }
+            for (size_t j = 0; j < i; j++) {
+                if (menu_items[j].container) {
+                    lv_obj_del(menu_items[j].container);
+                    menu_items[j].container = NULL;
+                }
+            }
+
             return ret;
         }
     }
