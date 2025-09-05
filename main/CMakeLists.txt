@@ -18,9 +18,10 @@ idf_component_register(
     REQUIRES
         lvgl
         st7262_rgb
-    PRIV_REQUIRES 
+    PRIV_REQUIRES
         nvs_flash
         esp_timer
         esp_psram
         driver
+        ch422g
 )
