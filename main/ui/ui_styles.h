@@ -21,6 +21,7 @@ extern "C" {
 #define COLOR_ACCENT_BLUE    lv_color_hex(0x4A90E2)  // Bleu doux
 #define COLOR_ACCENT_GREEN   lv_color_hex(0x7ED321)  // Vert nature
 #define COLOR_ACCENT_ORANGE  lv_color_hex(0xF5A623)  // Orange alertes
+#define COLOR_ACCENT_RED     lv_color_hex(0xD32F2F)  // Rouge critique
 #define COLOR_TEXT_DARK      lv_color_hex(0x2C3E50)  // Gris anthracite
 #define COLOR_TEXT_MEDIUM    lv_color_hex(0x5D6D7E)  // Gris moyen
 #define COLOR_TEXT_LIGHT     lv_color_hex(0x85929E)  // Gris clair
