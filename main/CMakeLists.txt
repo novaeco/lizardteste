@@ -11,6 +11,7 @@ idf_component_register(
         "ui/ui_data.c"
         "drivers/display_driver.c"
         "drivers/touch_driver.c"
+        "drivers/ch422.c"
     INCLUDE_DIRS 
         "."
         "ui"
