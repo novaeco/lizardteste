@@ -3,6 +3,12 @@ set -e
 
 command -v idf.py >/dev/null || { echo "idf.py introuvable"; exit 1; }
 
+# Optionnel: vérifier que la cible esp32s3 est configurée
+if ! idf.py --version 2>/dev/null | grep -q "IDF_TARGET: esp32s3"; then
+  echo "Erreur: cible ESP-IDF esp32s3 non configurée."
+  exit 1
+fi
+
 usage() {
   echo "Usage: $0 <PORT> [--baud <BAUD>] [--erase]"
 }
