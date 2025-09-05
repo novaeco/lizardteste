@@ -9,7 +9,7 @@
 #include "esp_attr.h"
 #include "esp_timer.h"
 #include "esp_lcd_panel_ops.h"
-#include "ch422.h"
+#include "ch422g.h"
 
 static const char *TAG = "Display_Driver";
 
@@ -45,12 +45,7 @@ esp_err_t display_driver_init(void)
         ESP_LOGE(TAG, "Failed to init panel: %d", ret);
         return ret;
     }
-    ret = ch422_init();
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "CH422 init failed: %d", ret);
-        return ret;
-    }
-    ch422_set_pin(EXIO2, true);
+    ch422g_set_pin(EXIO2, true);
     size_t buf_pixels = DISPLAY_BUF_SIZE;
     buf1 = heap_caps_malloc(buf_pixels * sizeof(lv_color_t),
                             MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA);
@@ -100,7 +95,7 @@ void display_driver_deinit(void)
         lv_display_delete(display);
         display = NULL;
     }
-    ch422_set_pin(EXIO2, false);
+    ch422g_set_pin(EXIO2, false);
     if (buf1) {
         heap_caps_free(buf1);
         buf1 = NULL;
@@ -119,7 +114,7 @@ void display_driver_deinit(void)
 
 void display_set_brightness(uint8_t brightness)
 {
-    ch422_set_pin(EXIO2, brightness > 0);
+    ch422g_set_pin(EXIO2, brightness > 0);
 }
 
 esp_err_t display_set_sleep(bool sleep)

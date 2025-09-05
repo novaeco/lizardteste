@@ -1,9 +1,9 @@
 /**
- * @file ch422.c
+ * @file ch422g.c
  * @brief Minimal I2C driver for CH422G output expander
  */
 
-#include "ch422.h"
+#include "ch422g.h"
 #include "driver/i2c_master.h"
 #include "esp_log.h"
 #include "esp_check.h"
@@ -14,18 +14,18 @@
 #define CH422_I2C_ADDR 0x20
 #define CH422_I2C_FREQ 100000
 
-static const char *TAG = "CH422";
+static const char *TAG = "CH422G";
 
 static i2c_master_bus_handle_t s_bus = NULL;
 static i2c_master_dev_handle_t s_dev = NULL;
 static uint8_t s_output_state = 0x00;
 
-static esp_err_t ch422_write_state(void)
+static esp_err_t ch422g_write_state(void)
 {
     return i2c_master_transmit(s_dev, &s_output_state, 1, 1000);
 }
 
-esp_err_t ch422_init(void)
+esp_err_t ch422g_init(void)
 {
     if (s_dev) {
         return ESP_OK;
@@ -52,18 +52,27 @@ esp_err_t ch422_init(void)
     ESP_RETURN_ON_ERROR(i2c_master_bus_add_device(s_bus, &dev_conf, &s_dev), TAG, "add dev");
 
     s_output_state = 0x00;
-    return ch422_write_state();
+    return ch422g_write_state();
 }
 
-esp_err_t ch422_set_pin(ch422_pin_t pin, bool level)
+esp_err_t ch422g_set_pin(ch422g_pin_t exio, bool level)
 {
     if (!s_dev) {
         return ESP_ERR_INVALID_STATE;
     }
     if (level) {
-        s_output_state |= (1u << pin);
+        s_output_state |= (1u << exio);
     } else {
-        s_output_state &= ~(1u << pin);
+        s_output_state &= ~(1u << exio);
     }
-    return ch422_write_state();
+    return ch422g_write_state();
 }
+
+bool ch422g_get_pin(ch422g_pin_t exio)
+{
+    if (!s_dev) {
+        return false;
+    }
+    return (s_output_state >> exio) & 0x01u;
+}
+

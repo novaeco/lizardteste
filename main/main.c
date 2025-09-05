@@ -23,6 +23,7 @@
 #include "ui_styles.h"
 #include "display_driver.h"
 #include "touch_driver.h"
+#include "ch422g.h"
 
 static const char *TAG = "NovaReptile_Main";
 
@@ -93,11 +94,19 @@ static esp_err_t nova_reptile_init(void)
              lv_version_major(), lv_version_minor(), lv_version_patch());
     lv_init();
 
+    // Initialisation du pilote CH422G
+    ret = ch422g_init();
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Erreur initialisation CH422G: %s", esp_err_to_name(ret));
+        lv_deinit();
+        return ret;
+    }
+
     // Initialisation du driver d'affichage ST7262
     ret = display_driver_init();
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur initialisation display: %s", esp_err_to_name(ret));
-        // Aucun sous-système graphique n'est actif, libération limitée à LVGL
+        // Libération en ordre inverse: ch422g -> LVGL
         lv_deinit();
         return ret;
     }
