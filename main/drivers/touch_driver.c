@@ -13,21 +13,18 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "ch422g.h"
+#include "i2c_bus.h"
 #include <string.h>
 #include <stdlib.h>
 
 static const char *TAG = "Touch_Driver";
 
-// Configuration des broches I2C (Waveshare ESP32-S3 Touch LCD 7")
-#define PIN_SDA 8
-#define PIN_SCL 9
 // Broche d'interruption du GT911
 #define PIN_INT 4
 // Reset du GT911 via le CH422G (sortie EXIO1)
 #define TOUCH_PIN_RST EXIO1
 
 // Configuration I2C
-#define I2C_PORT I2C_NUM_0
 #define I2C_FREQUENCY 400000 // 400kHz
 #define GT911_ADDR 0x5D      // Adresse I2C du GT911
 
@@ -283,24 +280,11 @@ esp_err_t touch_driver_init(void) {
   }
   isr_handler_added = true;
 
-  // Configuration du bus I2C et ajout du périphérique GT911
-  i2c_master_bus_config_t bus_conf = {
-      .i2c_port = I2C_PORT,
-      .sda_io_num = PIN_SDA,
-      .scl_io_num = PIN_SCL,
-      .clk_source = I2C_CLK_SRC_DEFAULT, // ou I2C_CLK_SRC_PLL_F80 selon la carte
-      .flags = {
-          .enable_internal_pullup = true,
-      },
-  };
-
-  // Activation explicite des pull-ups si non gérés par l'API
-  gpio_pullup_en(PIN_SDA);
-  gpio_pullup_en(PIN_SCL);
-
-  ret = i2c_new_master_bus(&bus_conf, &i2c_bus);
-  if (ret != ESP_OK) {
-    ESP_LOGE(TAG, "Erreur création bus I2C");
+  // Récupération du bus I2C partagé et ajout du périphérique GT911
+  i2c_bus = i2c_bus_get();
+  if (!i2c_bus) {
+    ESP_LOGE(TAG, "Bus I2C non initialisé");
+    ret = ESP_ERR_INVALID_STATE;
     goto fail;
   }
 
@@ -313,7 +297,6 @@ esp_err_t touch_driver_init(void) {
   ret = i2c_master_bus_add_device(i2c_bus, &dev_conf, &gt911_dev);
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Erreur ajout device I2C");
-    i2c_del_master_bus(i2c_bus);
     i2c_bus = NULL;
     goto fail;
   }
@@ -323,7 +306,6 @@ esp_err_t touch_driver_init(void) {
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Erreur initialisation GT911");
     i2c_master_bus_rm_device(gt911_dev);
-    i2c_del_master_bus(i2c_bus);
     gt911_dev = NULL;
     i2c_bus = NULL;
     goto fail;
@@ -334,7 +316,6 @@ esp_err_t touch_driver_init(void) {
   if (!indev) {
     ESP_LOGE(TAG, "Erreur création device tactile LVGL");
     i2c_master_bus_rm_device(gt911_dev);
-    i2c_del_master_bus(i2c_bus);
     gt911_dev = NULL;
     i2c_bus = NULL;
     ret = ESP_FAIL;
@@ -381,7 +362,6 @@ void touch_driver_deinit(void) {
       gt911_dev = NULL;
     }
     if (i2c_bus) {
-      i2c_del_master_bus(i2c_bus);
       i2c_bus = NULL;
     }
     touch_initialized = false;

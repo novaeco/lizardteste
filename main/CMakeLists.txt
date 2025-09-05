@@ -24,4 +24,5 @@ idf_component_register(
         esp_psram
         driver
         ch422g
+        i2c_bus
 )

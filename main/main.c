@@ -24,6 +24,7 @@
 #include "display_driver.h"
 #include "touch_driver.h"
 #include "ch422g.h"
+#include "i2c_bus.h"
 
 static const char *TAG = "NovaReptile_Main";
 
@@ -94,10 +95,19 @@ static esp_err_t nova_reptile_init(void)
              lv_version_major(), lv_version_minor(), lv_version_patch());
     lv_init();
 
+    // Initialisation du bus I2C partagé
+    ret = i2c_bus_init();
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Erreur initialisation I2C: %s", esp_err_to_name(ret));
+        lv_deinit();
+        return ret;
+    }
+
     // Initialisation du pilote CH422G
     ret = ch422g_init();
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur initialisation CH422G: %s", esp_err_to_name(ret));
+        i2c_bus_deinit();
         lv_deinit();
         return ret;
     }
@@ -117,6 +127,7 @@ static esp_err_t nova_reptile_init(void)
         ESP_LOGE(TAG, "Erreur initialisation touch: %s", esp_err_to_name(ret));
         // Libération en ordre inverse: display -> LVGL
         display_driver_deinit();
+        i2c_bus_deinit();
         lv_deinit();
         return ret;
     }
@@ -129,6 +140,7 @@ static esp_err_t nova_reptile_init(void)
         ui_styles_deinit();
         touch_driver_deinit();
         display_driver_deinit();
+        i2c_bus_deinit();
         lv_deinit();
         return ret;
     }
@@ -154,6 +166,7 @@ static void nova_reptile_deinit(void)
     ui_styles_deinit();
     touch_driver_deinit();
     display_driver_deinit();
+    i2c_bus_deinit();
     lv_deinit();
 
     ESP_LOGI(TAG, "Système NovaReptileElevage déinitialisé");
