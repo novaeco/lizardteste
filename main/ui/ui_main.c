@@ -40,6 +40,10 @@ static esp_err_t create_main_layout(void)
 
     // Création du conteneur header (barre de titre)
     g_nova_ui.header_container = lv_obj_create(g_nova_ui.main_screen);
+    if (!g_nova_ui.header_container) {
+        ESP_LOGE(TAG, "Erreur création conteneur header");
+        return ESP_ERR_NO_MEM;
+    }
     lv_obj_remove_style_all(g_nova_ui.header_container);
     lv_obj_add_style(g_nova_ui.header_container, ui_styles_get_header_bg(), 0);
     lv_obj_set_grid_cell(g_nova_ui.header_container, LV_GRID_ALIGN_STRETCH, 0, 2,
@@ -47,6 +51,10 @@ static esp_err_t create_main_layout(void)
 
     // Création du conteneur sidebar (menu latéral)
     g_nova_ui.sidebar_container = lv_obj_create(g_nova_ui.main_screen);
+    if (!g_nova_ui.sidebar_container) {
+        ESP_LOGE(TAG, "Erreur création conteneur sidebar");
+        return ESP_ERR_NO_MEM;
+    }
     lv_obj_remove_style_all(g_nova_ui.sidebar_container);
     lv_obj_add_style(g_nova_ui.sidebar_container, ui_styles_get_sidebar_bg(), 0);
     lv_obj_set_grid_cell(g_nova_ui.sidebar_container, LV_GRID_ALIGN_STRETCH, 0, 1,
@@ -54,6 +62,10 @@ static esp_err_t create_main_layout(void)
 
     // Création du conteneur de contenu principal
     g_nova_ui.content_container = lv_obj_create(g_nova_ui.main_screen);
+    if (!g_nova_ui.content_container) {
+        ESP_LOGE(TAG, "Erreur création conteneur contenu");
+        return ESP_ERR_NO_MEM;
+    }
     lv_obj_remove_style_all(g_nova_ui.content_container);
     lv_obj_add_style(g_nova_ui.content_container, ui_styles_get_content_bg(), 0);
     lv_obj_set_grid_cell(g_nova_ui.content_container, LV_GRID_ALIGN_STRETCH, 1, 1,
@@ -61,6 +73,10 @@ static esp_err_t create_main_layout(void)
 
     // Création du conteneur footer (barre d'état)
     g_nova_ui.footer_container = lv_obj_create(g_nova_ui.main_screen);
+    if (!g_nova_ui.footer_container) {
+        ESP_LOGE(TAG, "Erreur création conteneur footer");
+        return ESP_ERR_NO_MEM;
+    }
     lv_obj_remove_style_all(g_nova_ui.footer_container);
     lv_obj_add_style(g_nova_ui.footer_container, ui_styles_get_footer_bg(), 0);
     lv_obj_set_grid_cell(g_nova_ui.footer_container, LV_GRID_ALIGN_STRETCH, 0, 2,
