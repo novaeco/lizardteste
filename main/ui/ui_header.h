@@ -22,6 +22,11 @@ extern "C" {
 esp_err_t ui_header_init(lv_obj_t *parent);
 
 /**
+ * @brief Libère les ressources du header
+ */
+void ui_header_deinit(void);
+
+/**
  * @brief Met à jour le titre affiché
  * @param title Nouveau titre à afficher
  */
