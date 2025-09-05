@@ -8,6 +8,7 @@
 #include "ui_styles.h"
 #include "ui_main.h"
 #include "esp_log.h"
+#include "ui_data.h"
 
 static const char *TAG = "UI_Sidebar";
 
@@ -25,20 +26,6 @@ typedef struct {
 static sidebar_item_t menu_items[SCREEN_COUNT];
 static lv_obj_t *sidebar_container;
 
-// Données des éléments de menu
-static const struct {
-    const char *icon;
-    const char *label;
-    nova_screen_t screen;
-} menu_data[SCREEN_COUNT] = {
-    {LV_SYMBOL_HOME, "Accueil", SCREEN_DASHBOARD},
-    {LV_SYMBOL_EYE_OPEN, "Reptiles", SCREEN_REPTILES},
-    {LV_SYMBOL_DIRECTORY, "Terrariums", SCREEN_TERRARIUMS},
-    {LV_SYMBOL_BARS, "Statistiques", SCREEN_STATISTICS},
-    {LV_SYMBOL_WARNING, "Alertes", SCREEN_ALERTS},
-    {LV_SYMBOL_SETTINGS, "Paramètres", SCREEN_SETTINGS}
-};
-
 /**
  * @brief Callback pour les clics sur les éléments de menu
  * @param e Événement LVGL
@@ -50,9 +37,9 @@ static void menu_item_event_cb(lv_event_t *e)
     
     if (code == LV_EVENT_CLICKED) {
         // Recherche de l'élément cliqué
-        for (int i = 0; i < SCREEN_COUNT; i++) {
+        for (size_t i = 0; i < g_ui_menu_items_count; i++) {
             if (menu_items[i].container == obj) {
-                ESP_LOGI(TAG, "Menu cliqué: %s", menu_data[i].label);
+                ESP_LOGI(TAG, "Menu cliqué: %s", g_ui_menu_items[i].label);
                 ui_main_set_screen(menu_items[i].screen_type);
                 break;
             }
@@ -62,7 +49,7 @@ static void menu_item_event_cb(lv_event_t *e)
         lv_obj_add_style(obj, ui_styles_get_nav_item_hover(), 0);
     } else if (code == LV_EVENT_RELEASED) {
         // Retour à l'état normal si pas actif
-        for (int i = 0; i < SCREEN_COUNT; i++) {
+        for (size_t i = 0; i < g_ui_menu_items_count; i++) {
             if (menu_items[i].container == obj && !menu_items[i].is_active) {
                 lv_obj_remove_style(obj, ui_styles_get_nav_item_hover(), 0);
                 break;
@@ -101,12 +88,12 @@ static esp_err_t create_menu_item(lv_obj_t *parent, int index)
     
     // Icône
     item->icon = lv_label_create(item->container);
-    lv_label_set_text(item->icon, menu_data[index].icon);
+    lv_label_set_text(item->icon, g_ui_menu_items[index].icon);
     lv_obj_add_style(item->icon, ui_styles_get_text_subtitle(), 0);
     
     // Label
     item->label = lv_label_create(item->container);
-    lv_label_set_text(item->label, menu_data[index].label);
+    lv_label_set_text(item->label, g_ui_menu_items[index].label);
     lv_obj_add_style(item->label, ui_styles_get_text_body(), 0);
     lv_obj_set_flex_grow(item->label, 1);
     
@@ -121,7 +108,7 @@ static esp_err_t create_menu_item(lv_obj_t *parent, int index)
     lv_obj_add_style(item->indicator, ui_styles_get_nav_indicator(), 0);
     
     // Configuration de l'élément
-    item->screen_type = menu_data[index].screen;
+    item->screen_type = g_ui_menu_items[index].screen;
     item->is_active = false;
     
     // Ajout du callback d'événement
@@ -146,7 +133,7 @@ esp_err_t ui_sidebar_init(lv_obj_t *parent)
     lv_obj_set_style_pad_gap(parent, 10, 0);
 
     // Création des éléments de menu
-    for (int i = 0; i < SCREEN_COUNT; i++) {
+    for (size_t i = 0; i < g_ui_menu_items_count; i++) {
         esp_err_t ret = create_menu_item(parent, i);
         if (ret != ESP_OK) {
             ESP_LOGE(TAG, "Erreur création élément menu %d", i);
@@ -163,7 +150,7 @@ esp_err_t ui_sidebar_init(lv_obj_t *parent)
 
 void ui_sidebar_set_active_item(nova_screen_t screen_type)
 {
-    for (int i = 0; i < SCREEN_COUNT; i++) {
+    for (size_t i = 0; i < g_ui_menu_items_count; i++) {
         sidebar_item_t *item = &menu_items[i];
         
         if (item->screen_type == screen_type) {
@@ -172,7 +159,7 @@ void ui_sidebar_set_active_item(nova_screen_t screen_type)
                 lv_obj_remove_style_all(item->container);
                 lv_obj_add_style(item->container, ui_styles_get_nav_item_active(), 0);
                 item->is_active = true;
-                ESP_LOGI(TAG, "Élément activé: %s", menu_data[i].label);
+                ESP_LOGI(TAG, "Élément activé: %s", g_ui_menu_items[i].label);
             }
         } else {
             // Désactivation des autres éléments

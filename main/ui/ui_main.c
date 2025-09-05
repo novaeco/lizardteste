@@ -10,6 +10,7 @@
 #include "ui_content.h"
 #include "ui_footer.h"
 #include "ui_styles.h"
+#include "ui_data.h"
 #include "esp_log.h"
 
 static const char *TAG = "UI_Main";
@@ -95,7 +96,10 @@ esp_err_t ui_main_init(void)
     esp_err_t ret;
     
     ESP_LOGI(TAG, "Initialisation de l'interface NovaReptileElevage");
-    
+
+    // Chargement des données configurables par défaut
+    ui_data_load_defaults();
+
     // Initialisation des styles personnalisés
     ret = ui_styles_init();
     if (ret != ESP_OK) {
@@ -208,4 +212,28 @@ void ui_main_deinit(void)
     ui_styles_deinit();
 
     g_nova_ui = (nova_ui_t){0};
+}
+
+esp_err_t ui_main_reload_data(void)
+{
+    ui_data_reload();
+
+    if (g_nova_ui.sidebar_container) {
+        lv_obj_clean(g_nova_ui.sidebar_container);
+        esp_err_t ret = ui_sidebar_init(g_nova_ui.sidebar_container);
+        if (ret != ESP_OK) {
+            return ret;
+        }
+    }
+
+    if (g_nova_ui.content_container) {
+        lv_obj_clean(g_nova_ui.content_container);
+        esp_err_t ret = ui_content_init(g_nova_ui.content_container);
+        if (ret != ESP_OK) {
+            return ret;
+        }
+        ui_main_set_screen(g_current_screen);
+    }
+
+    return ESP_OK;
 }
