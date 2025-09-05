@@ -8,6 +8,7 @@
 #include "driver/gpio.h"
 #include "driver/i2c_master.h"
 #include "esp_log.h"
+#include "esp_err.h"
 #include "esp_attr.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -101,9 +102,23 @@ static esp_err_t gt911_init(void) {
   ESP_LOGI(TAG, "Initialisation du contrôleur GT911");
 
   // Reset du contrôleur
-  gpio_set_level(TOUCH_PIN_RST, 0);
+  esp_err_t err = gpio_set_level(TOUCH_PIN_RST, 0);
+  if (err != ESP_OK) {
+    ESP_LOGE(TAG, "gpio_set_level(TOUCH_PIN_RST, 0) failed: %s",
+             esp_err_to_name(err));
+    return err;
+  }
+  ESP_ERROR_CHECK(err);
+
   vTaskDelay(pdMS_TO_TICKS(10));
-  gpio_set_level(TOUCH_PIN_RST, 1);
+
+  err = gpio_set_level(TOUCH_PIN_RST, 1);
+  if (err != ESP_OK) {
+    ESP_LOGE(TAG, "gpio_set_level(TOUCH_PIN_RST, 1) failed: %s",
+             esp_err_to_name(err));
+    return err;
+  }
+  ESP_ERROR_CHECK(err);
   vTaskDelay(pdMS_TO_TICKS(100));
 
   // Lecture de l'ID du contrôleur
@@ -402,11 +417,38 @@ void touch_set_enable(bool enable) {
      *  - relâcher RST pour sortir le contrôleur du reset
      *  - reconfigurer INT en entrée (IRQ)
      */
-    gpio_set_direction(PIN_INT, GPIO_MODE_OUTPUT);
-    gpio_set_level(PIN_INT, 0);
-    gpio_set_level(TOUCH_PIN_RST, 1);
+    esp_err_t err = gpio_set_direction(PIN_INT, GPIO_MODE_OUTPUT);
+    if (err != ESP_OK) {
+      ESP_LOGE(TAG,
+               "gpio_set_direction(PIN_INT, GPIO_MODE_OUTPUT) failed: %s",
+               esp_err_to_name(err));
+      return;
+    }
+    ESP_ERROR_CHECK(err);
+
+    err = gpio_set_level(PIN_INT, 0);
+    if (err != ESP_OK) {
+      ESP_LOGE(TAG, "gpio_set_level(PIN_INT, 0) failed: %s",
+               esp_err_to_name(err));
+      return;
+    }
+    ESP_ERROR_CHECK(err);
+
+    err = gpio_set_level(TOUCH_PIN_RST, 1);
+    if (err != ESP_OK) {
+      ESP_LOGE(TAG, "gpio_set_level(TOUCH_PIN_RST, 1) failed: %s",
+               esp_err_to_name(err));
+      return;
+    }
+    ESP_ERROR_CHECK(err);
     vTaskDelay(pdMS_TO_TICKS(50));
-    gpio_set_direction(PIN_INT, GPIO_MODE_INPUT);
+    err = gpio_set_direction(PIN_INT, GPIO_MODE_INPUT);
+    if (err != ESP_OK) {
+      ESP_LOGE(TAG, "gpio_set_direction(PIN_INT, GPIO_MODE_INPUT) failed: %s",
+               esp_err_to_name(err));
+      return;
+    }
+    ESP_ERROR_CHECK(err);
   } else {
     ESP_LOGI(TAG, "Tactile désactivé");
 
@@ -415,9 +457,30 @@ void touch_set_enable(bool enable) {
      *  - placer RST à 0 pour couper le contrôleur
      *  - maintenir INT à 0 afin de désactiver l'IRQ
      */
-    gpio_set_direction(PIN_INT, GPIO_MODE_OUTPUT);
-    gpio_set_level(PIN_INT, 0);
-    gpio_set_level(TOUCH_PIN_RST, 0);
+    esp_err_t err = gpio_set_direction(PIN_INT, GPIO_MODE_OUTPUT);
+    if (err != ESP_OK) {
+      ESP_LOGE(TAG,
+               "gpio_set_direction(PIN_INT, GPIO_MODE_OUTPUT) failed: %s",
+               esp_err_to_name(err));
+      return;
+    }
+    ESP_ERROR_CHECK(err);
+
+    err = gpio_set_level(PIN_INT, 0);
+    if (err != ESP_OK) {
+      ESP_LOGE(TAG, "gpio_set_level(PIN_INT, 0) failed: %s",
+               esp_err_to_name(err));
+      return;
+    }
+    ESP_ERROR_CHECK(err);
+
+    err = gpio_set_level(TOUCH_PIN_RST, 0);
+    if (err != ESP_OK) {
+      ESP_LOGE(TAG, "gpio_set_level(TOUCH_PIN_RST, 0) failed: %s",
+               esp_err_to_name(err));
+      return;
+    }
+    ESP_ERROR_CHECK(err);
   }
 }
 
