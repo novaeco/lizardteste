@@ -139,6 +139,19 @@ Dans ce cas, `nova_reptile_init()` renvoie `ESP_ERR_NO_MEM` avant toute configur
   esp_idf_psram_test
   ```
 
+### Libération en cas d'échec d'initialisation
+
+`nova_reptile_init()` initialise séquentiellement l'affichage, le tactile et
+l'interface. Si l'une de ces étapes échoue, les ressources déjà allouées sont
+libérées dans l'ordre inverse suivant :
+
+1. **Styles UI** via `ui_styles_deinit()`
+2. **Driver tactile** via `touch_driver_deinit()`
+3. **Driver d'affichage** via `display_driver_deinit()`
+4. **Cœur LVGL** via `lv_deinit()`
+
+Cette séquence garantit une désinitialisation propre sans fuite de ressources.
+
 ### Étapes de compilation
 ```bash
 # Clonage du projet

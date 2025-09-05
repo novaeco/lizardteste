@@ -20,6 +20,7 @@
 
 #include "lvgl.h"
 #include "ui_main.h"
+#include "ui_styles.h"
 #include "display_driver.h"
 #include "touch_driver.h"
 
@@ -56,6 +57,10 @@ static void lvgl_task(void *pvParameter)
 
 /**
  * @brief Initialisation du système NovaReptileElevage
+ *
+ * Les différentes sous-systèmes sont initialisés séquentiellement. En cas
+ * d'échec, les ressources sont libérées en ordre inverse de leur allocation :
+ * interface (ui_styles), driver tactile, driver d'affichage puis cœur LVGL.
  * @return esp_err_t Code d'erreur ESP
  */
 static esp_err_t nova_reptile_init(void)
@@ -87,25 +92,35 @@ static esp_err_t nova_reptile_init(void)
     ESP_LOGI(TAG, "Initialisation LVGL v%d.%d.%d",
              lv_version_major(), lv_version_minor(), lv_version_patch());
     lv_init();
-    
+
     // Initialisation du driver d'affichage ST7262
     ret = display_driver_init();
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur initialisation display: %s", esp_err_to_name(ret));
+        // Aucun sous-système graphique n'est actif, libération limitée à LVGL
+        lv_deinit();
         return ret;
     }
-    
+
     // Initialisation du driver tactile GT911
     ret = touch_driver_init();
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur initialisation touch: %s", esp_err_to_name(ret));
+        // Libération en ordre inverse: display -> LVGL
+        display_driver_deinit();
+        lv_deinit();
         return ret;
     }
-    
+
     // Initialisation de l'interface utilisateur
     ret = ui_main_init();
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur initialisation UI: %s", esp_err_to_name(ret));
+        // Libération en ordre inverse: styles -> touch -> display -> LVGL
+        ui_styles_deinit();
+        touch_driver_deinit();
+        display_driver_deinit();
+        lv_deinit();
         return ret;
     }
     
