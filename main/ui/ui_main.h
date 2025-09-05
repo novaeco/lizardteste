@@ -80,6 +80,12 @@ void ui_main_update_realtime_data(void);
  */
 void ui_main_deinit(void);
 
+/**
+ * @brief Recharge les données configurables et reconstruit l'UI.
+ * @return esp_err_t Code d'erreur
+ */
+esp_err_t ui_main_reload_data(void);
+
 #ifdef __cplusplus
 }
 #endif

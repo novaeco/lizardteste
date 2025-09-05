@@ -7,6 +7,7 @@
 #include "ui_content.h"
 #include "ui_styles.h"
 #include "esp_log.h"
+#include "ui_data.h"
 #include <stdio.h>
 
 static const char *TAG = "UI_Content";
@@ -178,13 +179,7 @@ static lv_obj_t* create_reptiles_screen(lv_obj_t *parent)
     lv_label_set_text(add_label, "+ Nouveau Reptile");
     lv_obj_center(add_label);
 
-    // Liste des reptiles (simulation)
-    const char *reptiles_data[] = {
-        "Python Royal - Mâle - 3 ans",
-        "Gecko Léopard - Femelle - 2 ans",
-        "Pogona Vitticeps - Mâle - 1 an",
-        "Boa Constrictor - Femelle - 5 ans"
-    };
+    // Liste des reptiles configurable
 
     lv_obj_t *list = lv_obj_create(screen);
     lv_obj_remove_style_all(list);
@@ -192,7 +187,7 @@ static lv_obj_t* create_reptiles_screen(lv_obj_t *parent)
     lv_obj_set_flex_flow(list, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_style_pad_gap(list, 10, 0);
 
-    for (int i = 0; i < 4; i++) {
+    for (size_t i = 0; i < g_ui_reptiles_count; i++) {
         lv_obj_t *reptile_card = lv_obj_create(list);
         if (!reptile_card) {
             ESP_LOGE(TAG, "Erreur création carte reptile %d", i);
@@ -211,7 +206,7 @@ static lv_obj_t* create_reptiles_screen(lv_obj_t *parent)
         lv_obj_set_flex_grow(text_cont, 1);
 
         lv_obj_t *reptile_name = lv_label_create(text_cont);
-        lv_label_set_text(reptile_name, reptiles_data[i]);
+        lv_label_set_text(reptile_name, g_ui_reptiles[i]);
         lv_obj_add_style(reptile_name, ui_styles_get_text_subtitle(), 0);
 
         lv_obj_t *reptile_status = lv_label_create(text_cont);
@@ -416,12 +411,7 @@ static lv_obj_t* create_alerts_screen(lv_obj_t *parent)
     lv_label_set_text(title, "Alertes et Notifications");
     lv_obj_add_style(title, ui_styles_get_text_title(), 0);
 
-    // Alertes actives
-    const char *alerts_data[][3] = {
-        {"CRITIQUE", "Température terrarium #2 élevée", "28.5°C (Max: 26°C)"},
-        {"ATTENTION", "Humidité terrarium #4 faible", "45% (Min: 50%)"},
-        {"INFO", "Maintenance programmée demain", "Nettoyage système filtration"}
-    };
+    // Alertes actives configurables
 
     lv_obj_t *list = lv_obj_create(screen);
     lv_obj_remove_style_all(list);
@@ -429,7 +419,7 @@ static lv_obj_t* create_alerts_screen(lv_obj_t *parent)
     lv_obj_set_flex_flow(list, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_style_pad_gap(list, 10, 0);
 
-    for (int i = 0; i < 3; i++) {
+    for (size_t i = 0; i < g_ui_alerts_count; i++) {
         lv_obj_t *alert_card = lv_obj_create(list);
         if (!alert_card) {
             ESP_LOGE(TAG, "Erreur création carte alerte %d", i);
@@ -464,15 +454,15 @@ static lv_obj_t* create_alerts_screen(lv_obj_t *parent)
         lv_obj_set_style_pad_gap(text_cont, 5, 0);
 
         lv_obj_t *level_label = lv_label_create(text_cont);
-        lv_label_set_text(level_label, alerts_data[i][0]);
+        lv_label_set_text(level_label, g_ui_alerts[i].level);
         lv_obj_add_style(level_label, ui_styles_get_text_small(), 0);
 
         lv_obj_t *alert_title = lv_label_create(text_cont);
-        lv_label_set_text(alert_title, alerts_data[i][1]);
+        lv_label_set_text(alert_title, g_ui_alerts[i].title);
         lv_obj_add_style(alert_title, ui_styles_get_text_subtitle(), 0);
 
         lv_obj_t *alert_details = lv_label_create(text_cont);
-        lv_label_set_text(alert_details, alerts_data[i][2]);
+        lv_label_set_text(alert_details, g_ui_alerts[i].details);
         lv_obj_add_style(alert_details, ui_styles_get_text_body(), 0);
 
         // Bouton d'action
@@ -510,13 +500,7 @@ static lv_obj_t* create_settings_screen(lv_obj_t *parent)
     lv_label_set_text(title, "Paramètres Système");
     lv_obj_add_style(title, ui_styles_get_text_title(), 0);
 
-    // Sections de paramètres
-    const char *settings_sections[] = {
-        "Réseau et Connectivité",
-        "Capteurs et Surveillance",
-        "Notifications et Alertes",
-        "Maintenance et Sauvegardes"
-    };
+    // Sections de paramètres configurables
 
     lv_obj_t *list = lv_obj_create(screen);
     lv_obj_remove_style_all(list);
@@ -524,7 +508,7 @@ static lv_obj_t* create_settings_screen(lv_obj_t *parent)
     lv_obj_set_flex_flow(list, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_style_pad_gap(list, 10, 0);
 
-    for (int i = 0; i < 4; i++) {
+    for (size_t i = 0; i < g_ui_settings_sections_count; i++) {
         lv_obj_t *section_card = lv_obj_create(list);
         if (!section_card) {
             ESP_LOGE(TAG, "Erreur création carte section %d", i);
@@ -544,7 +528,7 @@ static lv_obj_t* create_settings_screen(lv_obj_t *parent)
         lv_obj_set_style_pad_gap(text_cont, 5, 0);
 
         lv_obj_t *section_title = lv_label_create(text_cont);
-        lv_label_set_text(section_title, settings_sections[i]);
+        lv_label_set_text(section_title, g_ui_settings_sections[i]);
         lv_obj_add_style(section_title, ui_styles_get_text_subtitle(), 0);
 
         lv_obj_t *section_desc = lv_label_create(text_cont);
