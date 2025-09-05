@@ -6,6 +6,7 @@
 
 #include "ui_styles.h"
 #include "esp_log.h"
+#include <string.h>
 
 static const char *TAG = "UI_Styles";
 
@@ -276,7 +277,36 @@ esp_err_t ui_styles_init(void)
 
 void ui_styles_deinit(void)
 {
-    // Libération des ressources styles si nécessaire
+    lv_style_t *styles[] = {
+        &style_main_bg,
+        &style_header_bg,
+        &style_sidebar_bg,
+        &style_content_bg,
+        &style_footer_bg,
+        &style_btn_primary,
+        &style_btn_secondary,
+        &style_btn_danger,
+        &style_card,
+        &style_text_title,
+        &style_text_subtitle,
+        &style_text_body,
+        &style_text_small,
+        &style_nav_normal,
+        &style_nav_active,
+        &style_nav_hover,
+        &style_nav_indicator,
+        &style_status_ok,
+        &style_alert_level_critical,
+        &style_alert_level_warning,
+        &style_alert_level_info,
+    };
+
+    size_t count = sizeof(styles) / sizeof(styles[0]);
+    for (size_t i = 0; i < count; i++) {
+        lv_style_reset(styles[i]);
+        memset(styles[i], 0, sizeof(lv_style_t));
+    }
+
     ESP_LOGI(TAG, "Styles libérés");
 }
 
