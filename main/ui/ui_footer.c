@@ -19,6 +19,11 @@ static lv_obj_t *footer_notifications;
 static lv_obj_t *footer_datetime;
 static lv_obj_t *footer_system_info;
 
+/* Icônes de signal Wi-Fi personnalisées */
+#define ICON_WIFI_HIGH   LV_SYMBOL_WIFI                     /**< Signal fort   */
+#define ICON_WIFI_MEDIUM LV_SYMBOL_WIFI "\xE2\x80\xA2"      /**< Signal moyen  */
+#define ICON_WIFI_LOW    LV_SYMBOL_WIFI "\xE2\x80\xA2\xE2\x80\xA2" /**< Signal faible */
+
 /**
  * @brief Crée l'indicateur Wi-Fi
  * @param parent Conteneur parent
@@ -39,7 +44,7 @@ static esp_err_t create_wifi_indicator(lv_obj_t *parent)
 
     // Icône Wi-Fi
     footer_wifi_icon = lv_label_create(cont);
-    lv_label_set_text(footer_wifi_icon, LV_SYMBOL_WIFI);
+    lv_label_set_text(footer_wifi_icon, ICON_WIFI_HIGH);
     lv_obj_add_style(footer_wifi_icon, ui_styles_get_text_small(), 0);
 
     // Texte statut Wi-Fi
@@ -198,15 +203,13 @@ void ui_footer_set_wifi_status(bool connected, int signal_strength)
     
     if (footer_wifi_icon) {
         if (connected) {
+            const char *icon = ICON_WIFI_LOW;
             if (signal_strength > 75) {
-                lv_label_set_text(footer_wifi_icon, LV_SYMBOL_WIFI);
+                icon = ICON_WIFI_HIGH;
             } else if (signal_strength > 50) {
-                lv_label_set_text(footer_wifi_icon, LV_SYMBOL_WIFI);
-            } else if (signal_strength > 25) {
-                lv_label_set_text(footer_wifi_icon, LV_SYMBOL_WIFI);
-            } else {
-                lv_label_set_text(footer_wifi_icon, LV_SYMBOL_WIFI);
+                icon = ICON_WIFI_MEDIUM;
             }
+            lv_label_set_text(footer_wifi_icon, icon);
         } else {
             lv_label_set_text(footer_wifi_icon, LV_SYMBOL_CLOSE);
         }
