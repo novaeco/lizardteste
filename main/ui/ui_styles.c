@@ -242,7 +242,7 @@ static void init_indicator_styles(void)
 
     // Niveaux d'alerte
     lv_style_init(&style_alert_level_critical);
-    lv_style_set_bg_color(&style_alert_level_critical, COLOR_ACCENT_ORANGE);
+    lv_style_set_bg_color(&style_alert_level_critical, COLOR_ACCENT_RED);
     lv_style_set_bg_opa(&style_alert_level_critical, LV_OPA_COVER);
     lv_style_set_radius(&style_alert_level_critical, 3);
     lv_style_set_border_width(&style_alert_level_critical, 0);
