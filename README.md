@@ -74,7 +74,8 @@ Le fichier `lv_conf.h` est placé dans `components/lvgl/` et, grâce à la défi
 
 ### Broches ESP32-S3 (Waveshare 7")
 ```c
-// Interface SPI de configuration ST7262
+// Interface SPI de configuration ST7262 (bus SPI3 dédié)
+#define LCD_CMD_SPI_HOST   SPI3_HOST
 #define LCD_CMD_MOSI_GPIO  11
 #define LCD_CMD_SCLK_GPIO   6
 #define LCD_CMD_CS_GPIO    12
@@ -93,6 +94,7 @@ Les broches MOSI et CS ont été déplacées respectivement sur GPIO11 et GPIO12
 
 | Macro                | GPIO | Fonction                  | Fichier source                       |
 |----------------------|------|---------------------------|--------------------------------------|
+| `LCD_CMD_SPI_HOST`   | SPI3_HOST | Bus SPI commandes LCD | `components/st7262_rgb/st7262_rgb.c` |
 | `LCD_CMD_SCLK_GPIO`  | 6    | SPI SCLK (cmd ST7262)     | `components/st7262_rgb/st7262_rgb.c` |
 | `LCD_CMD_MOSI_GPIO`  | 11   | SPI MOSI (cmd ST7262)     | `components/st7262_rgb/st7262_rgb.c` |
 | `LCD_CMD_CS_GPIO`    | 12   | SPI CS (cmd ST7262)       | `components/st7262_rgb/st7262_rgb.c` |
@@ -101,6 +103,9 @@ Les broches MOSI et CS ont été déplacées respectivement sur GPIO11 et GPIO12
 | `PIN_SCL`            | 9    | I2C SCL (GT911)           | `main/drivers/touch_driver.c`        |
 | `PIN_INT`            | 4    | Interruption tactile      | `main/drivers/touch_driver.c`        |
 | `TOUCH_PIN_RST`      | CH422G EXIO1 | Reset contrôleur tactile  | `main/drivers/touch_driver.c`        |
+
+### Partage du bus SPI
+Le bus `SPI3_HOST` est dédié à l'interface de commande LCD et n'est pas partagé. Un éventuel lecteur **TF‑Card** doit être connecté sur `SPI2_HOST` ou sur un autre bus afin d'éviter toute contention.
 
 ### Paramètres SPI/I2C
 - **SPI**: 40MHz, Mode 0, DMA activé
