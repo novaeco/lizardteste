@@ -171,6 +171,10 @@ static lv_obj_t* create_title(lv_obj_t *parent)
 static lv_obj_t* create_connection_indicator(lv_obj_t *parent)
 {
     lv_obj_t *indicator = lv_obj_create(parent);
+    if (!indicator) {
+        ESP_LOGE(TAG, "Erreur création indicateur connexion");
+        return NULL;
+    }
     lv_obj_set_size(indicator, 12, 12);
     lv_obj_set_style_margin_right(indicator, 10, 0);
 

@@ -85,6 +85,7 @@ static esp_err_t create_menu_item(lv_obj_t *parent, int index)
     // Conteneur principal de l'élément
     item->container = lv_obj_create(parent);
     if (!item->container) {
+        ESP_LOGE(TAG, "Erreur création conteneur menu %d", index);
         return ESP_ERR_NO_MEM;
     }
     
@@ -111,6 +112,10 @@ static esp_err_t create_menu_item(lv_obj_t *parent, int index)
     
     // Indicateur (pour notifications, compteurs, etc.)
     item->indicator = lv_obj_create(item->container);
+    if (!item->indicator) {
+        ESP_LOGE(TAG, "Erreur création indicateur menu %d", index);
+        return ESP_ERR_NO_MEM;
+    }
     lv_obj_set_size(item->indicator, 8, 8);
     lv_obj_add_flag(item->indicator, LV_OBJ_FLAG_HIDDEN); // Caché par défaut
     lv_obj_add_style(item->indicator, ui_styles_get_nav_indicator(), 0);

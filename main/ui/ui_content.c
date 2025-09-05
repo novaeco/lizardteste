@@ -35,12 +35,16 @@ static lv_obj_t* create_settings_screen(lv_obj_t *parent);
  * @param height Hauteur
  * @return lv_obj_t* Carte créée
  */
-static lv_obj_t* create_info_card(lv_obj_t *parent, const char *title, 
+static lv_obj_t* create_info_card(lv_obj_t *parent, const char *title,
                                   const char *value, const char *unit,
                                   int x, int y, int width, int height)
 {
     // Conteneur de la carte
     lv_obj_t *card = lv_obj_create(parent);
+    if (!card) {
+        ESP_LOGE(TAG, "Erreur création carte info");
+        return NULL;
+    }
     lv_obj_remove_style_all(card);
     lv_obj_add_style(card, ui_styles_get_card_style(), 0);
     lv_obj_set_pos(card, x, y);
@@ -71,6 +75,10 @@ static lv_obj_t* create_info_card(lv_obj_t *parent, const char *title,
 static lv_obj_t* create_dashboard_screen(lv_obj_t *parent)
 {
     lv_obj_t *screen = lv_obj_create(parent);
+    if (!screen) {
+        ESP_LOGE(TAG, "Erreur création écran dashboard");
+        return NULL;
+    }
     lv_obj_set_size(screen, lv_pct(100), lv_pct(100));
     lv_obj_remove_style_all(screen);
     lv_obj_set_style_bg_opa(screen, LV_OPA_TRANSP, 0);
@@ -82,19 +90,29 @@ static lv_obj_t* create_dashboard_screen(lv_obj_t *parent)
     lv_obj_set_pos(title, 0, 0);
     
     // Cartes d'informations - première rangée
-    create_info_card(screen, "Température Moyenne", "24.5", "°C", 0, 40, 140, 80);
-    create_info_card(screen, "Humidité Moyenne", "65", "%", 150, 40, 140, 80);
-    create_info_card(screen, "Reptiles Actifs", "8", "/12", 300, 40, 140, 80);
-    create_info_card(screen, "Alertes Actives", "2", "", 450, 40, 140, 80);
+    if (!create_info_card(screen, "Température Moyenne", "24.5", "°C", 0, 40, 140, 80) ||
+        !create_info_card(screen, "Humidité Moyenne", "65", "%", 150, 40, 140, 80) ||
+        !create_info_card(screen, "Reptiles Actifs", "8", "/12", 300, 40, 140, 80) ||
+        !create_info_card(screen, "Alertes Actives", "2", "", 450, 40, 140, 80)) {
+        ESP_LOGE(TAG, "Erreur création cartes info ligne 1");
+        return NULL;
+    }
     
     // Cartes d'informations - deuxième rangée
-    create_info_card(screen, "Terrariums", "6", "unités", 0, 130, 140, 80);
-    create_info_card(screen, "Éclairage", "ON", "", 150, 130, 140, 80);
-    create_info_card(screen, "Chauffage", "AUTO", "", 300, 130, 140, 80);
-    create_info_card(screen, "Ventilation", "75", "%", 450, 130, 140, 80);
+    if (!create_info_card(screen, "Terrariums", "6", "unités", 0, 130, 140, 80) ||
+        !create_info_card(screen, "Éclairage", "ON", "", 150, 130, 140, 80) ||
+        !create_info_card(screen, "Chauffage", "AUTO", "", 300, 130, 140, 80) ||
+        !create_info_card(screen, "Ventilation", "75", "%", 450, 130, 140, 80)) {
+        ESP_LOGE(TAG, "Erreur création cartes info ligne 2");
+        return NULL;
+    }
     
     // Zone pour graphique ou informations détaillées
     lv_obj_t *info_panel = lv_obj_create(screen);
+    if (!info_panel) {
+        ESP_LOGE(TAG, "Erreur création panneau info dashboard");
+        return NULL;
+    }
     lv_obj_remove_style_all(info_panel);
     lv_obj_add_style(info_panel, ui_styles_get_card_style(), 0);
     lv_obj_set_pos(info_panel, 0, 220);
@@ -126,6 +144,10 @@ static lv_obj_t* create_dashboard_screen(lv_obj_t *parent)
 static lv_obj_t* create_reptiles_screen(lv_obj_t *parent)
 {
     lv_obj_t *screen = lv_obj_create(parent);
+    if (!screen) {
+        ESP_LOGE(TAG, "Erreur création écran reptiles");
+        return NULL;
+    }
     lv_obj_set_size(screen, lv_pct(100), lv_pct(100));
     lv_obj_remove_style_all(screen);
     lv_obj_set_style_bg_opa(screen, LV_OPA_TRANSP, 0);
@@ -156,6 +178,10 @@ static lv_obj_t* create_reptiles_screen(lv_obj_t *parent)
     
     for (int i = 0; i < 4; i++) {
         lv_obj_t *reptile_card = lv_obj_create(screen);
+        if (!reptile_card) {
+            ESP_LOGE(TAG, "Erreur création carte reptile %d", i);
+            return NULL;
+        }
         lv_obj_remove_style_all(reptile_card);
         lv_obj_add_style(reptile_card, ui_styles_get_card_style(), 0);
         lv_obj_set_pos(reptile_card, 0, 50 + i * 80);
@@ -203,6 +229,10 @@ static lv_obj_t* create_reptiles_screen(lv_obj_t *parent)
 static lv_obj_t* create_terrariums_screen(lv_obj_t *parent)
 {
     lv_obj_t *screen = lv_obj_create(parent);
+    if (!screen) {
+        ESP_LOGE(TAG, "Erreur création écran terrariums");
+        return NULL;
+    }
     lv_obj_set_size(screen, lv_pct(100), lv_pct(100));
     lv_obj_remove_style_all(screen);
     lv_obj_set_style_bg_opa(screen, LV_OPA_TRANSP, 0);
@@ -218,6 +248,10 @@ static lv_obj_t* create_terrariums_screen(lv_obj_t *parent)
         int y = 50 + (i / 2) * 120;
         
         lv_obj_t *terrarium_card = lv_obj_create(screen);
+        if (!terrarium_card) {
+            ESP_LOGE(TAG, "Erreur création carte terrarium %d", i);
+            return NULL;
+        }
         lv_obj_remove_style_all(terrarium_card);
         lv_obj_add_style(terrarium_card, ui_styles_get_card_style(), 0);
         lv_obj_set_pos(terrarium_card, x, y);
@@ -247,6 +281,10 @@ static lv_obj_t* create_terrariums_screen(lv_obj_t *parent)
         
         // Indicateur d'état
         lv_obj_t *status_indicator = lv_obj_create(terrarium_card);
+        if (!status_indicator) {
+            ESP_LOGE(TAG, "Erreur création indicateur terrarium %d", i);
+            return NULL;
+        }
         lv_obj_set_size(status_indicator, 60, 25);
         lv_obj_set_pos(status_indicator, 210, 35);
         lv_obj_add_style(status_indicator, ui_styles_get_status_ok(), 0);
@@ -269,6 +307,10 @@ static lv_obj_t* create_terrariums_screen(lv_obj_t *parent)
 static lv_obj_t* create_statistics_screen(lv_obj_t *parent)
 {
     lv_obj_t *screen = lv_obj_create(parent);
+    if (!screen) {
+        ESP_LOGE(TAG, "Erreur création écran statistiques");
+        return NULL;
+    }
     lv_obj_set_size(screen, lv_pct(100), lv_pct(100));
     lv_obj_remove_style_all(screen);
     lv_obj_set_style_bg_opa(screen, LV_OPA_TRANSP, 0);
@@ -280,6 +322,10 @@ static lv_obj_t* create_statistics_screen(lv_obj_t *parent)
     
     // Placeholder pour un graphique (nécessiterait l'activation de LV_USE_CHART)
     lv_obj_t *chart_placeholder = lv_obj_create(screen);
+    if (!chart_placeholder) {
+        ESP_LOGE(TAG, "Erreur création placeholder graphique");
+        return NULL;
+    }
     lv_obj_remove_style_all(chart_placeholder);
     lv_obj_add_style(chart_placeholder, ui_styles_get_card_style(), 0);
     lv_obj_set_pos(chart_placeholder, 0, 50);
@@ -296,10 +342,13 @@ static lv_obj_t* create_statistics_screen(lv_obj_t *parent)
     lv_obj_set_pos(chart_info, 16, 40);
     
     // Statistiques résumées
-    create_info_card(screen, "Temp. Min", "22.1", "°C", 0, 270, 140, 80);
-    create_info_card(screen, "Temp. Max", "27.8", "°C", 150, 270, 140, 80);
-    create_info_card(screen, "Hum. Moyenne", "66.5", "%", 300, 270, 140, 80);
-    create_info_card(screen, "Uptime", "99.2", "%", 450, 270, 140, 80);
+    if (!create_info_card(screen, "Temp. Min", "22.1", "°C", 0, 270, 140, 80) ||
+        !create_info_card(screen, "Temp. Max", "27.8", "°C", 150, 270, 140, 80) ||
+        !create_info_card(screen, "Hum. Moyenne", "66.5", "%", 300, 270, 140, 80) ||
+        !create_info_card(screen, "Uptime", "99.2", "%", 450, 270, 140, 80)) {
+        ESP_LOGE(TAG, "Erreur création cartes statistiques");
+        return NULL;
+    }
     
     ESP_LOGI(TAG, "Écran statistiques créé");
     return screen;
@@ -313,6 +362,10 @@ static lv_obj_t* create_statistics_screen(lv_obj_t *parent)
 static lv_obj_t* create_alerts_screen(lv_obj_t *parent)
 {
     lv_obj_t *screen = lv_obj_create(parent);
+    if (!screen) {
+        ESP_LOGE(TAG, "Erreur création écran alertes");
+        return NULL;
+    }
     lv_obj_set_size(screen, lv_pct(100), lv_pct(100));
     lv_obj_remove_style_all(screen);
     lv_obj_set_style_bg_opa(screen, LV_OPA_TRANSP, 0);
@@ -331,6 +384,10 @@ static lv_obj_t* create_alerts_screen(lv_obj_t *parent)
     
     for (int i = 0; i < 3; i++) {
         lv_obj_t *alert_card = lv_obj_create(screen);
+        if (!alert_card) {
+            ESP_LOGE(TAG, "Erreur création carte alerte %d", i);
+            return NULL;
+        }
         lv_obj_remove_style_all(alert_card);
         lv_obj_add_style(alert_card, ui_styles_get_card_style(), 0);
         lv_obj_set_pos(alert_card, 0, 50 + i * 90);
@@ -338,6 +395,10 @@ static lv_obj_t* create_alerts_screen(lv_obj_t *parent)
         
         // Indicateur de niveau
         lv_obj_t *level_indicator = lv_obj_create(alert_card);
+        if (!level_indicator) {
+            ESP_LOGE(TAG, "Erreur création indicateur alerte %d", i);
+            return NULL;
+        }
         lv_obj_set_size(level_indicator, 6, 60);
         lv_obj_set_pos(level_indicator, 8, 10);
         
@@ -394,6 +455,10 @@ static lv_obj_t* create_alerts_screen(lv_obj_t *parent)
 static lv_obj_t* create_settings_screen(lv_obj_t *parent)
 {
     lv_obj_t *screen = lv_obj_create(parent);
+    if (!screen) {
+        ESP_LOGE(TAG, "Erreur création écran paramètres");
+        return NULL;
+    }
     lv_obj_set_size(screen, lv_pct(100), lv_pct(100));
     lv_obj_remove_style_all(screen);
     lv_obj_set_style_bg_opa(screen, LV_OPA_TRANSP, 0);
@@ -413,6 +478,10 @@ static lv_obj_t* create_settings_screen(lv_obj_t *parent)
     
     for (int i = 0; i < 4; i++) {
         lv_obj_t *section_card = lv_obj_create(screen);
+        if (!section_card) {
+            ESP_LOGE(TAG, "Erreur création carte section %d", i);
+            return NULL;
+        }
         lv_obj_remove_style_all(section_card);
         lv_obj_add_style(section_card, ui_styles_get_card_style(), 0);
         lv_obj_set_pos(section_card, 0, 50 + i * 80);

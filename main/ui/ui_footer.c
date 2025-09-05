@@ -28,6 +28,7 @@ static esp_err_t create_wifi_indicator(lv_obj_t *parent)
 {
     lv_obj_t *cont = lv_obj_create(parent);
     if (!cont) {
+        ESP_LOGE(TAG, "Erreur création conteneur Wi-Fi");
         return ESP_ERR_NO_MEM;
     }
 
@@ -117,6 +118,10 @@ esp_err_t ui_footer_init(lv_obj_t *parent)
 
     /* Espaceur pour pousser les éléments restants à droite */
     lv_obj_t *spacer = lv_obj_create(parent);
+    if (!spacer) {
+        ESP_LOGE(TAG, "Erreur création spacer footer");
+        return ESP_ERR_NO_MEM;
+    }
     lv_obj_remove_style_all(spacer);
     lv_obj_set_flex_grow(spacer, 1);
 
