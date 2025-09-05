@@ -50,8 +50,9 @@ void display_set_brightness(uint8_t brightness);
 /**
  * @brief Mise en veille de l'écran
  * @param sleep true pour mettre en veille, false pour réveiller
+ * @return esp_err_t Code d'erreur ESP
  */
-void display_set_sleep(bool sleep);
+esp_err_t display_set_sleep(bool sleep);
 
 #ifdef __cplusplus
 }

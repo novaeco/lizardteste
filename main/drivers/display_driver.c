@@ -156,13 +156,18 @@ void display_set_brightness(uint8_t brightness)
     ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
 }
 
-void display_set_sleep(bool sleep)
+esp_err_t display_set_sleep(bool sleep)
 {
-    esp_lcd_panel_disp_sleep(panel_handle, sleep);
+    esp_err_t ret = esp_lcd_panel_disp_sleep(panel_handle, sleep);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "esp_lcd_panel_disp_sleep failed: %d", ret);
+        return ret;
+    }
     if (sleep) {
         display_set_brightness(0);
     } else {
         display_set_brightness(80);
     }
+    return ESP_OK;
 }
 
