@@ -29,10 +29,11 @@ static void display_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t 
              area->x1, area->y1, area->x2, area->y2, w, h);
     if (esp_lcd_panel_draw_bitmap(panel_handle, area->x1, area->y1,
                                   area->x2 + 1, area->y2 + 1, px_map) == ESP_OK) {
-        lv_display_flush_ready(disp);
+        /* nothing */
     } else {
         ESP_LOGE(TAG, "esp_lcd_panel_draw_bitmap failed");
     }
+    lv_display_flush_ready(disp);
     int64_t end = esp_timer_get_time();
     ESP_LOGD(TAG, "flush end (%d,%d)->(%d,%d) size %dx%d, %lld us",
              area->x1, area->y1, area->x2, area->y2, w, h,
