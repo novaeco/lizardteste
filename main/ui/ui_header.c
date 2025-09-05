@@ -23,9 +23,14 @@ static lv_obj_t *quick_settings_panel;
 
 static lv_style_t style_connected;
 static lv_style_t style_disconnected;
+static bool header_styles_initialized = false;
 
 static void init_header_styles(void)
 {
+    if (header_styles_initialized) {
+        return;
+    }
+
     lv_style_init(&style_connected);
     lv_style_set_bg_color(&style_connected, COLOR_ACCENT_GREEN);
     lv_style_set_bg_opa(&style_connected, LV_OPA_COVER);
@@ -37,6 +42,8 @@ static void init_header_styles(void)
     lv_style_set_bg_opa(&style_disconnected, LV_OPA_COVER);
     lv_style_set_radius(&style_disconnected, 6);
     lv_style_set_border_width(&style_disconnected, 0);
+
+    header_styles_initialized = true;
 }
 
 /**
@@ -299,4 +306,11 @@ void ui_header_set_time(const char *time_str)
         lv_label_set_text(header_time, time_str);
         ESP_LOGI(TAG, "Heure mise à jour: %s", time_str);
     }
+}
+
+void ui_header_deinit(void)
+{
+    lv_style_reset(&style_connected);
+    lv_style_reset(&style_disconnected);
+    header_styles_initialized = false;
 }
