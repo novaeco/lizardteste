@@ -12,7 +12,7 @@
 #include "esp_attr.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "ch422.h"
+#include "ch422g.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -104,18 +104,18 @@ static esp_err_t gt911_init(void) {
   ESP_LOGI(TAG, "Initialisation du contrôleur GT911");
 
   // Reset du contrôleur via le CH422G
-  esp_err_t err = ch422_set_pin(TOUCH_PIN_RST, false);
+  esp_err_t err = ch422g_set_pin(TOUCH_PIN_RST, false);
   if (err != ESP_OK) {
-    ESP_LOGE(TAG, "ch422_set_pin(TOUCH_PIN_RST, 0) failed: %s",
+    ESP_LOGE(TAG, "ch422g_set_pin(TOUCH_PIN_RST, 0) failed: %s",
              esp_err_to_name(err));
     return err;
   }
 
   vTaskDelay(pdMS_TO_TICKS(10));
 
-  err = ch422_set_pin(TOUCH_PIN_RST, true);
+  err = ch422g_set_pin(TOUCH_PIN_RST, true);
   if (err != ESP_OK) {
-    ESP_LOGE(TAG, "ch422_set_pin(TOUCH_PIN_RST, 1) failed: %s",
+    ESP_LOGE(TAG, "ch422g_set_pin(TOUCH_PIN_RST, 1) failed: %s",
              esp_err_to_name(err));
     return err;
   }
@@ -251,12 +251,6 @@ esp_err_t touch_driver_init(void) {
   }
 
   // Initialisation du CH422G pour piloter TOUCH_PIN_RST
-  ret = ch422_init();
-  if (ret != ESP_OK) {
-    ESP_LOGE(TAG, "Erreur initialisation CH422G");
-    goto fail;
-  }
-
   // Test et configuration de la broche INT (entrée avec pull-up)
   ret = gpio_set_direction(PIN_INT, GPIO_MODE_INPUT);
   if (ret != ESP_OK) {
@@ -374,7 +368,7 @@ fail:
   };
   gpio_config(&rollback_conf);
   // Assure le GT911 maintenu en reset via le CH422G
-  ch422_set_pin(TOUCH_PIN_RST, false);
+  ch422g_set_pin(TOUCH_PIN_RST, false);
   return ret;
 }
 
@@ -432,9 +426,9 @@ void touch_set_enable(bool enable) {
     }
     ESP_ERROR_CHECK(err);
 
-    err = ch422_set_pin(TOUCH_PIN_RST, true);
+    err = ch422g_set_pin(TOUCH_PIN_RST, true);
     if (err != ESP_OK) {
-      ESP_LOGE(TAG, "ch422_set_pin(TOUCH_PIN_RST, 1) failed: %s",
+      ESP_LOGE(TAG, "ch422g_set_pin(TOUCH_PIN_RST, 1) failed: %s",
                esp_err_to_name(err));
       return;
     }
@@ -471,9 +465,9 @@ void touch_set_enable(bool enable) {
     }
     ESP_ERROR_CHECK(err);
 
-    err = ch422_set_pin(TOUCH_PIN_RST, false);
+    err = ch422g_set_pin(TOUCH_PIN_RST, false);
     if (err != ESP_OK) {
-      ESP_LOGE(TAG, "ch422_set_pin(TOUCH_PIN_RST, 0) failed: %s",
+      ESP_LOGE(TAG, "ch422g_set_pin(TOUCH_PIN_RST, 0) failed: %s",
                esp_err_to_name(err));
       return;
     }
