@@ -152,6 +152,13 @@ libérées dans l'ordre inverse suivant :
 
 Cette séquence garantit une désinitialisation propre sans fuite de ressources.
 
+### Déinitialisation globale
+
+Pour un arrêt contrôlé ou avant tout appel à `esp_restart()`,
+`nova_reptile_deinit()` doit être invoquée. Cette fonction arrête et supprime
+le timer `lvgl_tick_timer`, puis libère successivement les styles UI, le driver
+tactile, le driver d'affichage et enfin le cœur LVGL.
+
 ### Étapes de compilation
 ```bash
 # Clonage du projet
