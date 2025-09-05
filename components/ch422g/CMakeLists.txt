@@ -1,1 +1,1 @@
-idf_component_register(SRCS "ch422g.c" INCLUDE_DIRS "include" REQUIRES driver)
+idf_component_register(SRCS "ch422g.c" INCLUDE_DIRS "include" REQUIRES driver i2c_bus)
