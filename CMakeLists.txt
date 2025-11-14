@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.24)
 set(PROJECT_NAME "nova_reptile_elevage")
 
 # Configuration du projet NovaReptileElevage
@@ -23,9 +23,9 @@ target_compile_definitions(${PROJECT_NAME}.elf PRIVATE
 # EXPLICATION DÉTAILLÉE DU FICHIER CMAKE RACINE
 # ===============================================
 
-# 1. cmake_minimum_required(VERSION 3.5)
+# 1. cmake_minimum_required(VERSION 3.24)
 #    - Spécifie la version minimale de CMake requise
-#    - ESP-IDF nécessite au minimum CMake 3.5
+#    - ESP-IDF 6.1 s'appuie sur CMake 3.24+
 #    - Garantit la compatibilité avec les fonctions CMake utilisées
 
 # 2. set(PROJECT_NAME "nova_reptile_elevage")
@@ -70,6 +70,6 @@ target_compile_definitions(${PROJECT_NAME}.elf PRIVATE
 # │   ├── CMakeLists.txt      ← Configuration du composant main
 # │   └── *.c/*.h             ← Code source principal
 # └── components/
-#     └── lvgl/
-#         ├── CMakeLists.txt  ← Configuration du composant LVGL
-#         └── lvgl/           ← Sources LVGL
+#     └── lvgl_config/
+#         ├── CMakeLists.txt  ← Configuration LVGL (lvgl_config)
+#         └── lv_conf.h       ← Configuration LVGL
