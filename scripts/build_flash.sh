@@ -3,9 +3,52 @@ set -e
 
 command -v idf.py >/dev/null || { echo "idf.py introuvable"; exit 1; }
 
-# Optionnel: vérifier que la cible esp32s3 est configurée
-if ! idf.py --version 2>/dev/null | grep -q "IDF_TARGET: esp32s3"; then
-  echo "Erreur: cible ESP-IDF esp32s3 non configurée."
+detect_current_target() {
+  # Priorité: variable d'environnement (ESP-IDF >=6.1), idf.py get-target, puis sdkconfig
+  if [ -n "$IDF_TARGET" ]; then
+    echo "$IDF_TARGET"
+    return 0
+  fi
+
+  if TARGET_LINE=$(idf.py get-target 2>/dev/null | tail -n1); then
+    TARGET_LINE=${TARGET_LINE//$'\r'/}
+    TARGET_CLEAN=${TARGET_LINE##*: }
+    TARGET_CLEAN=${TARGET_CLEAN##* }
+    TARGET_CLEAN=$(printf '%s' "$TARGET_CLEAN" | tr '[:upper:]' '[:lower:]')
+    if [ -n "$TARGET_CLEAN" ]; then
+      echo "$TARGET_CLEAN"
+      return 0
+    fi
+  fi
+
+  if TARGET_LINE=$(idf.py show-targets 2>/dev/null | awk -F': ' '/Current target/ {print $2; exit}'); then
+    TARGET_LINE=${TARGET_LINE//$'\r'/}
+    TARGET_LINE=$(printf '%s' "$TARGET_LINE" | tr '[:upper:]' '[:lower:]')
+    if [ -n "$TARGET_LINE" ]; then
+      echo "$TARGET_LINE"
+      return 0
+    fi
+  fi
+
+  if [ -f sdkconfig ]; then
+    TARGET_VALUE=$(awk -F '"' '/^CONFIG_IDF_TARGET=/ { print $2; exit }' sdkconfig)
+    if [ -n "$TARGET_VALUE" ]; then
+      echo "$TARGET_VALUE"
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+CURRENT_TARGET=$(detect_current_target)
+if [ -z "$CURRENT_TARGET" ]; then
+  echo "Erreur: impossible de déterminer la cible ESP-IDF actuelle. Vérifiez votre installation ESP-IDF 6.1 (idf.py set-target esp32s3)."
+  exit 1
+fi
+
+if [ "$CURRENT_TARGET" != "esp32s3" ]; then
+  echo "Erreur: cible ESP-IDF détectée '$CURRENT_TARGET'. Configurez esp32s3 (idf.py set-target esp32s3)."
   exit 1
 fi
 
