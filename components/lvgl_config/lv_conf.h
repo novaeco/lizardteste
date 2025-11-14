@@ -9,7 +9,7 @@
 #define LV_COLOR_DEPTH 16
 #define LV_COLOR_16_SWAP 0
 #define LV_MEM_CUSTOM 0
-#define LV_MEM_SIZE (64U * 1024U)
+#define LV_MEM_SIZE (128U * 1024U)
 #define LV_MEM_ADR 0
 #define LV_MEM_AUTO_DEFRAG 1
 #define LV_MEMCPY_MEMSET_STD 0

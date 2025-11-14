@@ -1,9 +1,13 @@
-menu "ST7262 RGB configuration"
+menu "ST7262 RGB compatibility layer"
 
-config ST7262_RGB_ENABLE
-    bool "Enable ST7262 RGB panel support"
+config ST7262_RGB_COMPAT
+    bool "Enable legacy ST7262 RGB shim"
     default y
     help
-        Enable support for the ST7262 RGB display driver.
+        Ce module maintient la compatibilité avec l'ancien driver
+        `st7262_rgb` en redirigeant toutes les initialisations vers le
+        nouveau driver `st7701_rgb`, calibré pour la dalle Waveshare 7B
+        1024x600. Désactivez cette option uniquement si plus aucun
+        composant n'inclut les en-têtes historiques.
 
 endmenu

@@ -5,8 +5,8 @@
  * @version 1.0
  * @date 2025
  * 
- * Interface LVGL pour ESP32-S3 Touch LCD 7" (800x480)
- * Drivers: ST7262 (Display) + GT911 (Touch)
+ * Interface LVGL pour ESP32-S3 Touch LCD 7B (1024x600)
+ * Drivers: ST7701 (Display) + GT911 (Touch)
  */
 
 #include <stdio.h>
@@ -111,7 +111,7 @@ static esp_err_t nova_reptile_init(void)
         return ret;
     }
 
-    // Initialisation du driver d'affichage ST7262
+    // Initialisation du driver d'affichage ST7701
     ret = display_driver_init();
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur initialisation display: %s", esp_err_to_name(ret));
@@ -177,7 +177,7 @@ static void nova_reptile_deinit(void)
 void app_main(void)
 {
     ESP_LOGI(TAG, "=== NovaReptileElevage v1.0 ===");
-    ESP_LOGI(TAG, "ESP32-S3 Touch LCD 7\" (800x480)");
+    ESP_LOGI(TAG, "ESP32-S3 Touch LCD 7B (1024x600)");
     ESP_LOGI(TAG, "LVGL %d.%d.%d + ESP-IDF %s",
              lv_version_major(), lv_version_minor(), lv_version_patch(),
              esp_get_idf_version());

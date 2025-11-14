@@ -3,9 +3,10 @@ set -e
 
 command -v idf.py >/dev/null || { echo "idf.py introuvable"; exit 1; }
 
-# Optionnel: vérifier que la cible esp32s3 est configurée
-if ! idf.py --version 2>/dev/null | grep -q "IDF_TARGET: esp32s3"; then
-  echo "Erreur: cible ESP-IDF esp32s3 non configurée."
+# Vérification robuste de la cible active sous ESP-IDF 6.x
+current_target=$(idf.py get-target 2>/dev/null | tail -n 1 | tr -d '\r')
+if [[ -z "$current_target" || "$current_target" != "esp32s3" ]]; then
+  echo "Erreur: la cible active doit être esp32s3 (idf.py set-target esp32s3)."
   exit 1
 fi
 

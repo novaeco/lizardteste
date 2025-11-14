@@ -1,0 +1,9 @@
+menu "ST7701 RGB configuration"
+
+config ST7701_RGB_ENABLE
+    bool "Enable ST7701 RGB panel support"
+    default y
+    help
+        Enable support for the ST7701 RGB display driver used by the Waveshare ESP32-S3 Touch LCD 7B (1024x600).
+
+endmenu

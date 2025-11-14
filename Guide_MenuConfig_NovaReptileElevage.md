@@ -3,9 +3,9 @@
 
 ### Version du Guide
 - **Projet** : NovaReptileElevage v1.0
-- **Plateforme** : ESP32-S3 Touch LCD 7" (800x480)
-- **ESP-IDF** : 5.4.2
-- **LVGL** : 9.2.2
+- **Plateforme** : ESP32-S3 Touch LCD 7B (1024x600)
+- **ESP-IDF** : 6.1
+- **LVGL** : 9.4.0
 - **Date** : Janvier 2025
 
 ---
@@ -19,9 +19,10 @@ Ce guide vous accompagne dans la configuration complète de votre projet NovaRep
 ## 📋 Prérequis
 
 Avant de commencer, vérifiez que :
-- [ ] ESP-IDF 5.4.2 est correctement installé
+- [ ] ESP-IDF 6.1 est correctement installé
 - [ ] Les variables d'environnement ESP-IDF sont définies (`source ~/esp/esp-idf/export.sh`)
-- [ ] LVGL 9.2.2 est installé dans `components/lvgl/`
+- [ ] LVGL 9.4.x est disponible via le Component Manager (voir `main/idf_component.yml`)
+- [ ] Vous avez exécuté `idf.py add-dependency "lvgl/lvgl^9.4.0"` au moins une fois pour précharger la bibliothèque
 - [ ] Vous avez exécuté `idf.py set-target esp32s3`
 
 ---
@@ -54,21 +55,21 @@ Une interface de configuration basée sur un menu apparaît. Utilisez :
 Serial flasher config → Flash SPI speed
 → Sélectionner : 80 MHz
 ```
-**Justification** : L'ESP32-S3 avec 8MB de flash supporte 80MHz pour des performances optimales.
+**Justification** : L'ESP32-S3 avec 16MB de flash supporte 80MHz pour des performances optimales.
 
 #### 2.2 Flash SPI Mode  
 ```
 Serial flasher config → Flash SPI mode
-→ Sélectionner : QIO (Quad I/O)
+→ Sélectionner : DIO (Dual I/O)
 ```
-**Justification** : Mode le plus rapide pour l'accès à la mémoire flash.
+**Justification** : Compatible avec la configuration par défaut Waveshare tout en conservant une vitesse élevée.
 
 #### 2.3 Flash Size
 ```
 Serial flasher config → Flash size
-→ Sélectionner : 8 MB
+→ Sélectionner : 16 MB
 ```
-**Justification** : Correspond à la taille flash de la carte Waveshare ESP32-S3.
+**Justification** : Correspond à la taille flash de la carte Waveshare ESP32-S3 Touch LCD 7B.
 
 ---
 
@@ -162,7 +163,7 @@ SPI configuration
 → SPI master ISR in IRAM : [*] (activé)
 ```
 
-**Justification** : Performance maximale pour le driver ST7262 (écran 800x480).
+**Justification** : Performance maximale pour le driver ST7701 (écran 1024x600).
 
 ---
 
@@ -241,7 +242,7 @@ ESP PSRAM → Initialize PSRAM in SPI mode : [*] (activé)
 ESP PSRAM → Ignore PSRAM when not found : [ ] (désactivé)
 ```
 
-**⚠️ CRITIQUE** : Cette configuration est essentielle pour les buffers LVGL sur un écran 800x480.
+**⚠️ CRITIQUE** : Cette configuration est essentielle pour les buffers LVGL sur un écran 1024x600.
 
 ---
 
@@ -317,13 +318,13 @@ Power Management → Enable dynamic frequency scaling (DFS) : [*] (activé)
 
 ### 17. Vérification lv_conf.h
 
-Le fichier `components/lvgl/lv_conf.h` est partagé dans tout le projet via `LV_CONF_INCLUDE_SIMPLE`.
-Assurez-vous que `components/lvgl/lv_conf.h` contient :
+Le fichier `components/lvgl_config/lv_conf.h` est partagé dans tout le projet via `LV_CONF_INCLUDE_SIMPLE`.
+Assurez-vous que `components/lvgl_config/lv_conf.h` contient :
 
 ```c
 // Optimisations ESP32-S3
 #define LV_COLOR_DEPTH 16
-#define LV_MEM_SIZE (64U * 1024U)  // 64KB pour les buffers
+#define LV_MEM_SIZE (128U * 1024U)  // 128KB pour les buffers PSRAM
 #define LV_DISP_DEF_REFR_PERIOD 16  // 60 FPS
 #define LV_INDEV_DEF_READ_PERIOD 16 // Tactile réactif
 
@@ -393,9 +394,9 @@ Avant de compiler (`idf.py build`) :
 - [ ] PSRAM activé et configuré (CLK=30, CS=26)
 - [ ] SPI et I2C activés 
 - [ ] CPU à 240MHz
-- [ ] Flash à 80MHz en mode QIO
-- [ ] Optimization -O2
-- [ ] LVGL 9.2.2 installé dans components/
+- [ ] Flash à 80MHz en mode DIO
+- [ ] Optimization -Os
+- [ ] LVGL 9.4.x installé dans components/
 - [ ] Configuration sauvegardée dans menuconfig
 
 ---

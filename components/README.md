@@ -1,47 +1,39 @@
 # Composants ESP-IDF pour NovaReptileElevage
 
-Ce dossier contient les composants externes utilisés par le projet.
+Ce dossier regroupe les composants personnalisés qui complètent ceux distribués via l'ESP-IDF Component Manager.
 
-## Composants inclus
+## Composants inclus dans le dépôt
 
-### LVGL (Light and Versatile Graphics Library)
-- **Version** : 9.2.2
-- **Usage** : Interface utilisateur graphique
-- **Localisation** : `components/lvgl/`
+### LVGL Config
+- **Version LVGL ciblée** : 9.4.x (téléchargée automatiquement)
+- **Usage** : expose `lv_conf.h` et le wrapper `lvgl.h`, applique `LV_CONF_INCLUDE_SIMPLE` sur la bibliothèque externe.
+- **Localisation** : `components/lvgl_config/`
+- **Compatibilité historique** : le dossier `components/lvgl/` est conservé comme
+  placeholder pour les anciens scripts ; il ne contient plus les sources LVGL.
 
-## Installation des composants
+### ST7701 RGB Panel Driver
+- **Version** : interne (timings Waveshare 7B 1024×600)
+- **Usage** : initialisation du contrôleur LCD via `esp_lcd` et configuration du pipeline RGB.
+- **Localisation** : `components/st7701_rgb/`
+- **Compatibilité** : `components/st7262_rgb/` fournit un shim qui redirige les
+  anciennes fonctions `st7262_rgb_*` vers le nouveau driver ST7701.
 
-### Méthode 1 : Git Submodules (Recommandée)
+### Pilotes CH422G & I2C utilitaires
+- **Usage** : expander GPIO pour rétroéclairage et bus I²C partagé (GT911, CH422G, etc.).
+- **Localisation** : `components/ch422g/`, `components/i2c_bus/`
+
+## Dépendances récupérées automatiquement
+
+Le fichier `main/idf_component.yml` déclare l'utilisation de LVGL 9.4.x :
+
 ```bash
-cd components/lvgl
-git clone --recurse-submodules https://github.com/lvgl/lvgl.git
-cd lvgl
-git checkout release/v9.2
+idf.py add-dependency "lvgl/lvgl^9.4.0"
 ```
 
-### Méthode 2 : ESP Component Manager
-```bash
-idf.py add-dependency "lvgl/lvgl^9.2.0"
-```
+Lors d'un `idf.py build`, ESP-IDF télécharge la bibliothèque dans son cache global (`~/.espressif/components/`). Aucun fichier LVGL volumineux n'est versionné dans ce dépôt.
 
-## Vérification
+## Configuration LVGL
 
-Après installation, la structure doit être :
-```
-components/
-├── README.md
-└── lvgl/
-    ├── CMakeLists.txt
-    ├── README.md
-    └── lvgl/           # Sources LVGL
-        ├── src/
-        ├── examples/
-        └── lv_conf_template.h
-```
-
-## Configuration
-
-- Le fichier de configuration LVGL se trouve dans `components/lvgl/lv_conf.h`
-- Ce fichier est partagé dans tout le projet grâce à la macro `LV_CONF_INCLUDE_SIMPLE`
-- Les paramètres sont optimisés pour ESP32-S3 avec écran 800x480
-- Support tactile GT911 activé
+- Le fichier de configuration se trouve dans `components/lvgl_config/lv_conf.h`.
+- Grâce à `LV_CONF_INCLUDE_SIMPLE`, tous les modules LVGL et l'application peuvent accéder à cette configuration.
+- Les paramètres sont optimisés pour ESP32-S3 + écran 1024×600 avec contrôleur tactile GT911.

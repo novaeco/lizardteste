@@ -1,10 +1,10 @@
 /**
  * @file display_driver.c
- * @brief Driver d'affichage ST7262 via interface RGB
+ * @brief Driver d'affichage ST7701 via interface RGB
  */
 
 #include "display_driver.h"
-#include "st7262_rgb.h"
+#include "st7701_rgb.h"
 #include "esp_log.h"
 #include "esp_attr.h"
 #include "esp_timer.h"
@@ -40,7 +40,7 @@ static void display_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t 
 
 esp_err_t display_driver_init(void)
 {
-    esp_err_t ret = st7262_rgb_new_panel(&panel_handle);
+    esp_err_t ret = st7701_rgb_new_panel(&panel_handle);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to init panel: %d", ret);
         return ret;
@@ -55,7 +55,7 @@ esp_err_t display_driver_init(void)
         if (buf1) { heap_caps_free(buf1); buf1 = NULL; }
         if (buf2) { heap_caps_free(buf2); buf2 = NULL; }
         ESP_LOGW(TAG, "PSRAM alloc failed, falling back to internal RAM");
-        buf_pixels = (DISPLAY_WIDTH * DISPLAY_HEIGHT) / 5;
+        buf_pixels = (DISPLAY_WIDTH * DISPLAY_HEIGHT) / 6;
         buf1 = heap_caps_malloc(buf_pixels * sizeof(lv_color_t),
                                 MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
         buf2 = heap_caps_malloc(buf_pixels * sizeof(lv_color_t),
