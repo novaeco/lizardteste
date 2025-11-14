@@ -14,6 +14,7 @@
 #include "freertos/task.h"
 #include "ch422g.h"
 #include "i2c_bus.h"
+#include "lv_display.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -49,6 +50,7 @@ static volatile bool touch_pressed = false;
 static i2c_master_dev_handle_t gt911_dev = NULL;
 static uint16_t gt911_max_x = TOUCH_WIDTH;
 static uint16_t gt911_max_y = TOUCH_HEIGHT;
+static lv_indev_t *touch_indev = NULL;
 
 /**
  * @brief ISR appelée sur front descendant de la ligne INT du GT911.
@@ -331,8 +333,8 @@ esp_err_t touch_driver_init(void) {
   }
 
   // Configuration du driver d'entrée LVGL
-  lv_indev_t *indev = lv_indev_create();
-  if (!indev) {
+  touch_indev = lv_indev_create();
+  if (!touch_indev) {
     ESP_LOGE(TAG, "Erreur création device tactile LVGL");
     i2c_master_bus_rm_device(gt911_dev);
     gt911_dev = NULL;
@@ -340,8 +342,16 @@ esp_err_t touch_driver_init(void) {
     goto fail;
   }
 
-  lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
-  lv_indev_set_read_cb(indev, touch_read);
+  lv_indev_set_type(touch_indev, LV_INDEV_TYPE_POINTER);
+  lv_indev_set_read_cb(touch_indev, touch_read);
+
+  lv_display_t *display = lv_display_get_default();
+  if (display) {
+    lv_indev_set_display(touch_indev, display);
+  } else {
+    ESP_LOGW(TAG,
+             "Aucun écran LVGL par défaut, l'association du périphérique tactile est différée");
+  }
 
   // Attache de l'ISR après initialisation réussie
   ret = gpio_isr_handler_add(PIN_INT, touch_isr_handler, NULL);
@@ -365,6 +375,10 @@ fail:
    *  - suppression du handler et du service ISR
    *  - reconfiguration de PIN_INT en entrée pull-up
    */
+  if (touch_indev) {
+    lv_indev_delete(touch_indev);
+    touch_indev = NULL;
+  }
   if (isr_handler_added)
     gpio_isr_handler_remove(PIN_INT);
   if (isr_service_installed)
@@ -389,6 +403,10 @@ void touch_driver_deinit(void) {
     if (gt911_dev) {
       i2c_master_bus_rm_device(gt911_dev);
       gt911_dev = NULL;
+    }
+    if (touch_indev) {
+      lv_indev_delete(touch_indev);
+      touch_indev = NULL;
     }
     touch_initialized = false;
     ESP_LOGI(TAG, "Driver tactile désactivé");
