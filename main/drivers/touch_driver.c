@@ -14,7 +14,7 @@
 #include "freertos/task.h"
 #include "ch422g.h"
 #include "i2c_bus.h"
-#include "lv_display.h"
+#include "lvgl.h"
 #include <string.h>
 #include <stdlib.h>
 
