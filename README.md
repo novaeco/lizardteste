@@ -1,11 +1,11 @@
 # NovaReptileElevage - Interface LVGL ESP32-S3
 
-Interface utilisateur complète pour système d'élevage de reptiles utilisant LVGL 9.4.0 sur ESP32-S3 avec écran tactile 7 pouces.
+Interface utilisateur complète pour système d'élevage de reptiles utilisant LVGL 9.4.0 sur ESP32-S3 avec écran tactile 7 pouces (Waveshare Touch LCD 7B 1024x600).
 
 ## 🦎 Caractéristiques
 
-- **Plateforme**: ESP32-S3 Touch LCD 7" (800x480)
-- **Affichage**: Driver ST7262 avec support RGB565
+- **Plateforme**: ESP32-S3 Touch LCD 7B (1024x600)
+- **Affichage**: Driver ST7701 avec support RGB565
 - **Tactile**: Contrôleur GT911 multi-touch (5 points)
 - **Interface**: LVGL 9.4.0 avec design moderne
 - **Architecture**: Modulaire et maintenable
@@ -43,9 +43,9 @@ Interface utilisateur complète pour système d'élevage de reptiles utilisant L
 ### Structure des fichiers
 ```
 components/
-└── lvgl/
-    ├── lv_conf.h         # Configuration LVGL partagée
-    └── ...               # Bibliothèque LVGL
+└── lvgl_config/
+    ├── lv_conf.h         # Configuration LVGL du projet
+    └── lvgl.h            # Wrapper vers <lvgl/lvgl.h>
 main/
 ├── main.c                # Point d'entrée principal
 ├── ui/                   # Interface utilisateur
@@ -56,11 +56,11 @@ main/
 │   ├── ui_footer.c/.h    # Barre d'état
 │   └── ui_styles.c/.h    # Styles personnalisés
 └── drivers/              # Drivers matériels
-    ├── display_driver.c/.h  # ST7262 (800x480)
+    ├── display_driver.c/.h  # ST7701 (1024x600)
     └── touch_driver.c/.h    # GT911 (tactile)
 ```
 
-Le fichier `lv_conf.h` est placé dans `components/lvgl/` et, grâce à la définition `LV_CONF_INCLUDE_SIMPLE`, il est accessible à l'ensemble du projet.
+Le fichier `lv_conf.h` est placé dans `components/lvgl_config/` et, grâce à la définition `LV_CONF_INCLUDE_SIMPLE`, il est accessible à l'ensemble du projet.
 
 ### Écrans disponibles
 1. **Tableau de bord** - Vue d'ensemble du système
@@ -72,9 +72,9 @@ Le fichier `lv_conf.h` est placé dans `components/lvgl/` et, grâce à la défi
 
 ## 🔧 Configuration technique
 
-### Broches ESP32-S3 (Waveshare 7")
+### Broches ESP32-S3 (Waveshare 7B)
 ```c
-// Interface SPI de configuration ST7262 (bus SPI3 dédié)
+// Interface SPI de configuration ST7701 (bus SPI3 dédié)
 #define LCD_CMD_SPI_HOST   SPI3_HOST
 #define LCD_CMD_MOSI_GPIO  11
 #define LCD_CMD_SCLK_GPIO   6
@@ -94,11 +94,11 @@ Les broches MOSI et CS ont été déplacées respectivement sur GPIO11 et GPIO12
 
 | Macro                | GPIO | Fonction                  | Fichier source                       |
 |----------------------|------|---------------------------|--------------------------------------|
-| `LCD_CMD_SPI_HOST`   | SPI3_HOST | Bus SPI commandes LCD | `components/st7262_rgb/st7262_rgb.c` |
-| `LCD_CMD_SCLK_GPIO`  | 6    | SPI SCLK (cmd ST7262)     | `components/st7262_rgb/st7262_rgb.c` |
-| `LCD_CMD_MOSI_GPIO`  | 11   | SPI MOSI (cmd ST7262)     | `components/st7262_rgb/st7262_rgb.c` |
-| `LCD_CMD_CS_GPIO`    | 12   | SPI CS (cmd ST7262)       | `components/st7262_rgb/st7262_rgb.c` |
-| `LCD_CMD_DC_GPIO`    | 4    | SPI D/C (cmd ST7262)      | `components/st7262_rgb/st7262_rgb.c` |
+| `LCD_CMD_SPI_HOST`   | SPI3_HOST | Bus SPI commandes LCD | `components/st7701_rgb/st7701_rgb.c` |
+| `LCD_CMD_SCLK_GPIO`  | 6    | SPI SCLK (cmd ST7701)     | `components/st7701_rgb/st7701_rgb.c` |
+| `LCD_CMD_MOSI_GPIO`  | 11   | SPI MOSI (cmd ST7701)     | `components/st7701_rgb/st7701_rgb.c` |
+| `LCD_CMD_CS_GPIO`    | 12   | SPI CS (cmd ST7701)       | `components/st7701_rgb/st7701_rgb.c` |
+| `LCD_CMD_DC_GPIO`    | 4    | SPI D/C (cmd ST7701)      | `components/st7701_rgb/st7701_rgb.c` |
 | `PIN_SDA`            | 8    | I2C SDA (GT911)           | `main/drivers/touch_driver.c`        |
 | `PIN_SCL`            | 9    | I2C SCL (GT911)           | `main/drivers/touch_driver.c`        |
 | `PIN_INT`            | 4    | Interruption tactile      | `main/drivers/touch_driver.c`        |
@@ -108,22 +108,23 @@ Les broches MOSI et CS ont été déplacées respectivement sur GPIO11 et GPIO12
 Le bus `SPI3_HOST` est dédié à l'interface de commande LCD et n'est pas partagé. Un éventuel lecteur **TF‑Card** doit être connecté sur `SPI2_HOST` ou sur un autre bus afin d'éviter toute contention.
 
 ### Paramètres SPI/I2C
-- **SPI**: 40MHz, Mode 0, DMA activé
+- **SPI**: 10MHz pour l'interface de commande ST7701 (config), pixel clock RGB configurée à 30MHz
 - **I2C**: 400kHz, Pull-ups activées
 - **PWM**: Rétroéclairage contrôlable (5kHz, 8-bit)
 
 ## 🚀 Installation et compilation
 
 ### Prérequis
-- ESP-IDF 5.4.2 ou supérieur
+- ESP-IDF 6.1 ou supérieur
 - Outil `idf.py` disponible dans le `PATH`
-- LVGL 9.4.0 (inclus en composant)
-- PSRAM activée, le frame buffer étant placé en PSRAM via `CONFIG_USE_PSRAM`
-- Carte Waveshare ESP32-S3 Touch LCD 7"
+- LVGL 9.4.0 (fourni par l'ESP-IDF Component Manager)
+- Précharge LVGL avec : `idf.py add-dependency "lvgl/lvgl^9.4.0"`
+- PSRAM activée, le frame buffer étant placé en PSRAM via `CONFIG_SPIRAM`
+- Carte Waveshare ESP32-S3 Touch LCD 7B
 
 #### Démarrage sans PSRAM
 
-Si `CONFIG_USE_PSRAM` est désactivé, le frame buffer est alloué en SRAM interne; pour un écran 800x480, cela dépasse la capacité disponible et l'initialisation échoue. Lors de l'initialisation, le firmware vérifie la présence de la PSRAM via `esp_psram_init()` puis `esp_psram_get_chip_size()`. Si aucune PSRAM n'est détectée (taille nulle), l'initialisation est interrompue et l'erreur suivante est journalisée :
+Si `CONFIG_SPIRAM` est désactivé, le frame buffer est alloué en SRAM interne; pour un écran 1024x600, cela dépasse la capacité disponible et l'initialisation échoue. Lors de l'initialisation, le firmware vérifie la présence de la PSRAM via `esp_psram_init()` puis `esp_psram_get_chip_size()`. Si aucune PSRAM n'est détectée (taille nulle), l'initialisation est interrompue et l'erreur suivante est journalisée :
 
 ```
 ESP_LOGE(TAG, "Aucune PSRAM détectée - initialisation annulée");
@@ -187,9 +188,9 @@ idf.py -p /dev/ttyUSB0 flash
 > **Note:** après toute modification de configuration, exécuter `idf.py defconfig` afin de régénérer `sdkconfig` à partir de `sdkconfig.defaults`.
 
 ### Configuration LVGL
-Le fichier `components/lvgl/lv_conf.h` est configuré pour:
+Le fichier `components/lvgl_config/lv_conf.h` est configuré pour:
 - Profondeur couleur 16-bit (RGB565)
-- Buffer mémoire 64KB
+- Buffer mémoire 128KB (PSRAM)
 - Widgets essentiels activés
 - Polices Montserrat (12-28px)
 - Support flex/grid layouts
