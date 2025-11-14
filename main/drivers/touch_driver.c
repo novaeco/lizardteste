@@ -393,6 +393,7 @@ fail:
   gpio_config(&rollback_conf);
   // Assure le GT911 maintenu en reset via le CH422G
   ch422g_set_pin(TOUCH_PIN_RST, false);
+  ch422g_deinit();
   return ret;
 }
 

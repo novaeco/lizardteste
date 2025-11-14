@@ -102,6 +102,7 @@ cleanup:
         panel_handle = NULL;
     }
     ch422g_set_pin(EXIO2, false);
+    ch422g_deinit();
     return ret;
 }
 

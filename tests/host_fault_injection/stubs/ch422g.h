@@ -20,6 +20,7 @@ extern "C" {
 typedef uint8_t ch422g_pin_t;
 
 esp_err_t ch422g_init(void);
+void ch422g_deinit(void);
 esp_err_t ch422g_set_pin(ch422g_pin_t exio, bool level);
 bool ch422g_get_pin(ch422g_pin_t exio);
 

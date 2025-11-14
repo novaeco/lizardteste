@@ -66,6 +66,7 @@ static lv_obj_t *content_container_ref;
 
 static size_t backlight_call_count;
 static bool last_backlight_level;
+static size_t ch422g_deinit_call_count;
 
 static bool panel_del_invoked;
 static bool panel_disp_off_invoked;
@@ -100,6 +101,7 @@ void test_reset_mocks(void)
     freed_ptrs_count = 0;
     backlight_call_count = 0;
     last_backlight_level = false;
+    ch422g_deinit_call_count = 0;
     panel_del_invoked = false;
     panel_disp_off_invoked = false;
     reset_lvgl_objects_state();
@@ -149,6 +151,11 @@ size_t test_backlight_call_count(void)
 bool test_backlight_last_level(void)
 {
     return last_backlight_level;
+}
+
+size_t test_ch422g_deinit_call_count(void)
+{
+    return ch422g_deinit_call_count;
 }
 
 bool test_panel_del_called(void)
@@ -222,6 +229,12 @@ bool ch422g_get_pin(ch422g_pin_t exio)
 {
     (void)exio;
     return last_backlight_level;
+}
+
+void ch422g_deinit(void)
+{
+    last_backlight_level = false;
+    ++ch422g_deinit_call_count;
 }
 
 esp_err_t st7701_rgb_new_panel(esp_lcd_panel_handle_t *handle)
