@@ -93,7 +93,7 @@ static esp_err_t create_main_layout(void)
  */
 esp_err_t ui_main_init(void)
 {
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
     
     ESP_LOGI(TAG, "Initialisation de l'interface NovaReptileElevage");
 
@@ -104,42 +104,42 @@ esp_err_t ui_main_init(void)
     ret = ui_styles_init();
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur initialisation styles");
-        return ret;
+        goto fail;
     }
     
     // Création du layout principal
     ret = create_main_layout();
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur création layout principal");
-        return ret;
+        goto fail;
     }
     
     // Initialisation du header (barre de titre)
     ret = ui_header_init(g_nova_ui.header_container);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur initialisation header");
-        return ret;
+        goto fail;
     }
     
     // Initialisation de la sidebar (menu latéral)
     ret = ui_sidebar_init(g_nova_ui.sidebar_container);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur initialisation sidebar");
-        return ret;
+        goto fail;
     }
     
     // Initialisation du contenu principal
     ret = ui_content_init(g_nova_ui.content_container);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur initialisation content");
-        return ret;
+        goto fail;
     }
     
     // Initialisation du footer (barre d'état)
     ret = ui_footer_init(g_nova_ui.footer_container);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur initialisation footer");
-        return ret;
+        goto fail;
     }
     
     // Chargement de l'écran principal
@@ -149,14 +149,23 @@ esp_err_t ui_main_init(void)
     lv_obj_t *active = lv_scr_act();
     if (!active) {
         ESP_LOGE(TAG, "lv_scr_act() renvoie NULL après le premier chargement d'écran");
-        return ESP_FAIL;
+        ret = ESP_FAIL;
+        goto fail;
     }
 
     // Affichage initial du tableau de bord
-    ui_main_set_screen(SCREEN_DASHBOARD);
-    
+    ret = ui_main_set_screen(SCREEN_DASHBOARD);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Erreur chargement de l'écran initial");
+        goto fail;
+    }
+
     ESP_LOGI(TAG, "Interface initialisée avec succès");
     return ESP_OK;
+
+fail:
+    ui_main_deinit();
+    return ret;
 }
 
 nova_ui_t* ui_main_get_instance(void)

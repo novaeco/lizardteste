@@ -13,6 +13,7 @@ add_executable(test_display_driver_fault
 target_include_directories(test_display_driver_fault PRIVATE
     stubs
     ../../main
+    ../../main/ui
     ../../main/drivers
 )
 
@@ -20,4 +21,22 @@ if(MSVC)
     target_compile_options(test_display_driver_fault PRIVATE /W4)
 else()
     target_compile_options(test_display_driver_fault PRIVATE -Wall -Wextra -Werror)
+endif()
+
+add_executable(test_ui_main_fault
+    test_ui_main_fault.c
+    stubs/mock_dependencies.c
+    ../../main/ui/ui_main.c
+)
+
+target_include_directories(test_ui_main_fault PRIVATE
+    stubs
+    ../../main
+    ../../main/ui
+)
+
+if(MSVC)
+    target_compile_options(test_ui_main_fault PRIVATE /W4)
+else()
+    target_compile_options(test_ui_main_fault PRIVATE -Wall -Wextra -Werror)
 endif()
