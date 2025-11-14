@@ -16,8 +16,8 @@ extern "C" {
 
 // Configuration du GT911
 #define TOUCH_MAX_POINTS    5    // Support multi-touch jusqu'à 5 points
-#define TOUCH_WIDTH         800
-#define TOUCH_HEIGHT        480
+#define TOUCH_WIDTH         1024
+#define TOUCH_HEIGHT        600
 
 /**
  * @brief Initialise le driver tactile GT911
