@@ -17,13 +17,19 @@ int main(void)
         dummy_buf2,
         NULL,
     };
-    test_heap_caps_set_sequence(sequence, sizeof(sequence) / sizeof(sequence[0]));
+    size_t sequence_len = sizeof(sequence) / sizeof(sequence[0]);
+    for (int attempt = 0; attempt < 2; ++attempt) {
+        test_heap_caps_set_sequence(sequence, sequence_len);
 
-    esp_err_t ret = display_driver_init();
-    assert(ret == ESP_ERR_NO_MEM);
+        esp_err_t ret = display_driver_init();
+        assert(ret == ESP_ERR_NO_MEM);
+
+        /* Each failure must trigger a full CH422G teardown. */
+        assert(test_ch422g_deinit_call_count() == (size_t)(attempt + 1));
+    }
 
     /* Backlight must be turned off when cleanup path is triggered. */
-    assert(test_backlight_call_count() >= 1);
+    assert(test_backlight_call_count() >= 2);
     assert(test_backlight_last_level() == false);
 
     /* All partially allocated buffers must be released. */

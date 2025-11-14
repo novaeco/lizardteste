@@ -57,8 +57,6 @@ static void ch422g_cleanup_devices(void)
         }
         s_ctx.dev_rd_io = NULL;
     }
-    s_ctx.bus = NULL;
-    s_ctx.initialized = false;
 }
 
 static esp_err_t ch422g_write_state(void)
@@ -111,7 +109,7 @@ esp_err_t ch422g_init(void)
     esp_err_t err = i2c_master_bus_add_device(s_ctx.bus, &cfg, &s_ctx.dev_wr_io);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to add WR_IO device: %s", esp_err_to_name(err));
-        ch422g_cleanup_devices();
+        ch422g_deinit();
         return err;
     }
 
@@ -125,7 +123,7 @@ esp_err_t ch422g_init(void)
     err = ch422g_configure_defaults();
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to configure defaults: %s", esp_err_to_name(err));
-        ch422g_cleanup_devices();
+        ch422g_deinit();
         return err;
     }
 
@@ -170,5 +168,11 @@ bool ch422g_get_pin(ch422g_pin_t exio)
     }
 
     return ((s_ctx.wr_io_shadow >> exio) & 0x01u) != 0;
+}
+
+void ch422g_deinit(void)
+{
+    ch422g_cleanup_devices();
+    s_ctx = (ch422g_ctx_t){0};
 }
 

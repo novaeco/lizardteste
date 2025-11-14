@@ -116,6 +116,8 @@ static esp_err_t nova_reptile_init(void)
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Erreur initialisation display: %s", esp_err_to_name(ret));
         // Libération en ordre inverse: ch422g -> LVGL
+        ch422g_deinit();
+        i2c_bus_deinit();
         lv_deinit();
         return ret;
     }
@@ -126,6 +128,7 @@ static esp_err_t nova_reptile_init(void)
         ESP_LOGE(TAG, "Erreur initialisation touch: %s", esp_err_to_name(ret));
         // Libération en ordre inverse: display -> LVGL
         display_driver_deinit();
+        ch422g_deinit();
         i2c_bus_deinit();
         lv_deinit();
         return ret;
@@ -139,6 +142,7 @@ static esp_err_t nova_reptile_init(void)
         ui_styles_deinit();
         touch_driver_deinit();
         display_driver_deinit();
+        ch422g_deinit();
         i2c_bus_deinit();
         lv_deinit();
         return ret;
@@ -165,6 +169,7 @@ static void nova_reptile_deinit(void)
     ui_main_deinit();
     touch_driver_deinit();
     display_driver_deinit();
+    ch422g_deinit();
     i2c_bus_deinit();
     lv_deinit();
 
