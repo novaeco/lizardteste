@@ -1,6 +1,6 @@
 /**
  * @file display_driver.h
- * @brief Driver pour écran ST7262 (800x480)
+ * @brief Driver pour écran ST7701 (1024x600)
  * @author NovaReptileElevage Team
  */
 
@@ -16,22 +16,22 @@ extern "C" {
 #endif
 
 // Configuration de l'écran
-#define DISPLAY_WIDTH   800
-#define DISPLAY_HEIGHT  480
+#define DISPLAY_WIDTH   1024
+#define DISPLAY_HEIGHT  600
 
 /*
  * Taille du tampon LVGL :
  * - Avec PSRAM, on peut se permettre 1/4 de l'écran pour gagner en fluidité
- * - Sans PSRAM, on réduit à 1/5 afin d'économiser la RAM interne
+ * - Sans PSRAM, on réduit à 1/6 afin d'économiser la RAM interne
  */
 #if CONFIG_SPIRAM
 #define DISPLAY_BUF_SIZE (DISPLAY_WIDTH * DISPLAY_HEIGHT / 4)
 #else
-#define DISPLAY_BUF_SIZE (DISPLAY_WIDTH * DISPLAY_HEIGHT / 5)
+#define DISPLAY_BUF_SIZE (DISPLAY_WIDTH * DISPLAY_HEIGHT / 6)
 #endif
 
 /**
- * @brief Initialise le driver d'affichage ST7262
+ * @brief Initialise le driver d'affichage ST7701
  * @return esp_err_t Code d'erreur ESP
  */
 esp_err_t display_driver_init(void);

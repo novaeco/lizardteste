@@ -10,12 +10,12 @@ extern "C" {
 #endif
 
 /**
- * @brief Create and initialize ST7262 RGB panel
+ * @brief Create and initialize ST7701 RGB panel for Waveshare ESP32-S3 Touch LCD 7B (1024x600)
  *
  * @param[out] ret_panel Returned panel handle
  * @return esp_err_t
  */
-esp_err_t st7262_rgb_new_panel(esp_lcd_panel_handle_t *ret_panel);
+esp_err_t st7701_rgb_new_panel(esp_lcd_panel_handle_t *ret_panel);
 
 #ifdef __cplusplus
 }

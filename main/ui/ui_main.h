@@ -15,13 +15,13 @@ extern "C" {
 #endif
 
 // Dimensions de l'écran
-#define SCREEN_WIDTH    800
-#define SCREEN_HEIGHT   480
+#define SCREEN_WIDTH    1024
+#define SCREEN_HEIGHT   600
 
 // Dimensions des zones de l'interface
-#define HEADER_HEIGHT   60
-#define FOOTER_HEIGHT   40
-#define SIDEBAR_WIDTH   180
+#define HEADER_HEIGHT   80
+#define FOOTER_HEIGHT   56
+#define SIDEBAR_WIDTH   240
 #define CONTENT_WIDTH   (SCREEN_WIDTH - SIDEBAR_WIDTH)
 #define CONTENT_HEIGHT  (SCREEN_HEIGHT - HEADER_HEIGHT - FOOTER_HEIGHT)
 

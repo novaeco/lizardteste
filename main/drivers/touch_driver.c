@@ -33,6 +33,8 @@ static const char *TAG = "Touch_Driver";
 #define GT911_REG_ID 0x8140
 #define GT911_REG_POINT1 0x814F
 #define GT911_REG_CONFIG 0x8047
+#define GT911_REG_X_OUTPUT_MAX 0x8048
+#define GT911_REG_Y_OUTPUT_MAX 0x804A
 
 // Structure pour les données tactiles
 typedef struct {
@@ -45,6 +47,8 @@ typedef struct {
 static bool touch_initialized = false;
 static volatile bool touch_pressed = false;
 static i2c_master_dev_handle_t gt911_dev = NULL;
+static uint16_t gt911_max_x = TOUCH_WIDTH;
+static uint16_t gt911_max_y = TOUCH_HEIGHT;
 
 /**
  * @brief ISR appelée sur front descendant de la ligne INT du GT911.
@@ -134,6 +138,23 @@ static esp_err_t gt911_init(void) {
     return ESP_ERR_NOT_FOUND;
   }
 
+  uint8_t xy_range[4];
+  ret = gt911_read_reg(GT911_REG_X_OUTPUT_MAX, xy_range, sizeof(xy_range));
+  if (ret == ESP_OK) {
+    uint16_t raw_x = ((uint16_t)xy_range[1] << 8) | xy_range[0];
+    uint16_t raw_y = ((uint16_t)xy_range[3] << 8) | xy_range[2];
+    if (raw_x >= 100 && raw_x <= 4095) {
+      gt911_max_x = raw_x;
+    }
+    if (raw_y >= 100 && raw_y <= 4095) {
+      gt911_max_y = raw_y;
+    }
+  } else {
+    ESP_LOGW(TAG, "Lecture dimensions GT911 échouée: %s", esp_err_to_name(ret));
+  }
+  ESP_LOGI(TAG, "Surface tactile GT911 détectée: %u x %u", gt911_max_x,
+           gt911_max_y);
+
   ESP_LOGI(TAG, "GT911 initialisé avec succès");
   return ESP_OK;
 }
@@ -186,8 +207,16 @@ static void touch_read(lv_indev_t *indev, lv_indev_data_t *data) {
           uint16_t y = ((uint16_t)p[3] << 8) | p[2];
 
           // Adaptation aux dimensions de l'écran
-          x = (x * TOUCH_WIDTH) / 800;
-          y = (y * TOUCH_HEIGHT) / 480;
+          uint16_t max_x = gt911_max_x ? gt911_max_x : TOUCH_WIDTH;
+          uint16_t max_y = gt911_max_y ? gt911_max_y : TOUCH_HEIGHT;
+          x = (x * TOUCH_WIDTH) / max_x;
+          y = (y * TOUCH_HEIGHT) / max_y;
+          if (x >= TOUCH_WIDTH) {
+            x = TOUCH_WIDTH - 1;
+          }
+          if (y >= TOUCH_HEIGHT) {
+            y = TOUCH_HEIGHT - 1;
+          }
 
           points[i].x = x;
           points[i].y = y;

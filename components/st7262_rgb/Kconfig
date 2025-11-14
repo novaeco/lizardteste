@@ -1,9 +1,0 @@
-menu "ST7262 RGB configuration"
-
-config ST7262_RGB_ENABLE
-    bool "Enable ST7262 RGB panel support"
-    default y
-    help
-        Enable support for the ST7262 RGB display driver.
-
-endmenu
