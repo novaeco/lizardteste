@@ -7,6 +7,8 @@
 #ifndef DISPLAY_DRIVER_H
 #define DISPLAY_DRIVER_H
 
+#include <stdbool.h>
+
 #include "esp_err.h"
 #include "lvgl.h"
 #include "esp_heap_caps.h"

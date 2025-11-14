@@ -43,8 +43,9 @@ esp_err_t display_driver_init(void)
     esp_err_t ret = st7701_rgb_new_panel(&panel_handle);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to init panel: %d", ret);
-        return ret;
+        goto cleanup;
     }
+
     ch422g_set_pin(EXIO2, true);
     size_t buf_pixels = DISPLAY_BUF_SIZE;
     buf1 = heap_caps_malloc(buf_pixels * sizeof(lv_color_t),
@@ -64,21 +65,15 @@ esp_err_t display_driver_init(void)
             if (buf1) { heap_caps_free(buf1); buf1 = NULL; }
             if (buf2) { heap_caps_free(buf2); buf2 = NULL; }
             ESP_LOGE(TAG, "Buffer alloc failed");
-            return ESP_ERR_NO_MEM;
+            ret = ESP_ERR_NO_MEM;
+            goto cleanup;
         }
     }
     display = lv_display_create(DISPLAY_WIDTH, DISPLAY_HEIGHT);
     if (!display) {
-        if (buf1) {
-            heap_caps_free(buf1);
-            buf1 = NULL;
-        }
-        if (buf2) {
-            heap_caps_free(buf2);
-            buf2 = NULL;
-        }
         ESP_LOGE(TAG, "lv_display_create failed");
-        return ESP_ERR_NO_MEM;
+        ret = ESP_ERR_NO_MEM;
+        goto cleanup;
     }
     lv_display_set_default(display);
     lv_display_set_flush_cb(display, display_flush_cb);
@@ -87,6 +82,27 @@ esp_err_t display_driver_init(void)
                            LV_DISPLAY_RENDER_MODE_PARTIAL);
     ESP_LOGI(TAG, "Display driver initialized");
     return ESP_OK;
+
+cleanup:
+    if (display) {
+        lv_display_delete(display);
+        display = NULL;
+    }
+    if (buf1) {
+        heap_caps_free(buf1);
+        buf1 = NULL;
+    }
+    if (buf2) {
+        heap_caps_free(buf2);
+        buf2 = NULL;
+    }
+    if (panel_handle) {
+        esp_lcd_panel_disp_on_off(panel_handle, false);
+        esp_lcd_panel_del(panel_handle);
+        panel_handle = NULL;
+    }
+    ch422g_set_pin(EXIO2, false);
+    return ret;
 }
 
 void display_driver_deinit(void)
