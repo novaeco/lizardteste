@@ -17,7 +17,8 @@ idf_component_register(
         "drivers"
     REQUIRES
         lvgl
-        st7262_rgb
+        lvgl_config
+        st7701_rgb
     PRIV_REQUIRES
         nvs_flash
         esp_timer
