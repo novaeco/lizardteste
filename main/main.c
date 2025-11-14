@@ -162,7 +162,7 @@ static void nova_reptile_deinit(void)
         lvgl_tick_timer = NULL;
     }
 
-    ui_styles_deinit();
+    ui_main_deinit();
     touch_driver_deinit();
     display_driver_deinit();
     i2c_bus_deinit();
